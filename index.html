@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>I'M JOY - KT MNS 영업지원 AI</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <style>
+    /* 채팅 영역 전용 스크롤바 */
+    #chat-container::-webkit-scrollbar { width: 6px; }
+    #chat-container::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+  </style>
+</head>
+<body class="bg-[#f8f9fa] min-h-screen flex flex-col justify-between font-sans text-gray-800">
+
+  <!-- 1. 상단 네비게이션 영역 (헤더) -->
+  <header class="w-full bg-white">
+    <!-- 1차 상단 바: kt m&s / NEXUS / 유저 정보 -->
+    <div class="max-w-[1600px] mx-auto px-8 py-3 flex items-center justify-between">
+      <!-- 좌측: kt m&s 로고 -->
+      <div class="flex items-center">
+        <img src="Logo/Ktmns.png" alt="kt m&s" class="h-6 object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/110x32?text=kt+m%26s';" />
+      </div>
+
+      <!-- 중앙: NEXUS 로고 -->
+      <div class="flex flex-col items-center">
+        <img src="Logo/Nexus.png" alt="NEXUS" class="h-[80px] object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/80x36?text=NEXUS';" />
+      </div>
+
+      <!-- 우측: 사용자 프로필 & 버튼 (김지민 / 로그아웃 세로 배치 + 도움말) -->
+      <div class="flex items-center gap-3">
+        <div class="flex flex-col items-end gap-1">
+          <!-- 김지민 프로필 이미지 -->
+          <img src="Button/Secondary/Medium/Default/Mypage.png" alt="김지민 *" class="h-7 object-contain cursor-pointer" />
+          <!-- 로그아웃 버튼 이미지 -->
+          <button id="btn-logout" type="button" class="focus:outline-none">
+            <img src="Button/Secondary/Medium/Default/Logout.png" alt="로그아웃" class="h-7 object-contain hover:opacity-80 transition" />
+          </button>
+        </div>
+        <!-- 도움말 버튼 이미지 -->
+        <button id="btn-help" type="button" class="focus:outline-none">
+          <img src="Button/Primary/Large/Default/Help.png" alt="도움말" class="h-9 object-contain hover:opacity-80 transition" />
+        </button>
+      </div>
+    </div>
+
+    <!-- 2차 서브 바: 뒤로가기 + I'M JOY (상단 및 하단 테두리 #E1E1E1 적용) -->
+    <div class="w-full border-t border-b border-[#E1E1E1] bg-white">
+      <div class="max-w-[1600px] mx-auto px-8 py-2.5 flex items-center gap-3 text-gray-800 font-semibold text-sm">
+        <button id="btn-back" class="hover:text-black flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+        </button>
+        <span>I'M JOY</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 2. 본문 영역 -->
+  <main class="flex-1 w-full max-w-[1200px] mx-auto p-4 flex flex-col justify-center relative">
+
+    <!-- [STATE 1: HOME 화면] -->
+    <section id="home-view" class="w-full flex justify-center items-center py-12">
+      <div class="w-full max-w-[720px] bg-[#eceef3] rounded-3xl p-10 text-center shadow-sm border border-gray-200/50 flex flex-col items-center">
+        <!-- 상단 아이콘 -->
+        <!--  <div class="w-12 h-12 bg-gray-400 rounded-lg mb-4 flex items-center justify-center text-white text-xs font-bold">
+          JOY
+        </div> -->
+        <p class="font-bold text-5xl mb-4">🙌</p>
+
+        
+        <h2 class="text-gray-700 font-bold text-base mb-6">안녕하세요</h2>
+        
+        <div class="text-gray-500 text-sm leading-relaxed space-y-3">
+          <p class="font-medium text-gray-600">
+            안녕하세요!<br/>
+            KT MNS의 든든한 영업지원 비서 <span class="text-blue-600 font-semibold">I'M JOY</span> 입니다!
+          </p>
+          <p>
+            막막한 영업 현장, 혼자 고민하지 마세요.<br/>
+            성과를 만드는 영업 전문가가 되는 길을 지원해드립니다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- [STATE 2: CHAT 화면] -->
+    <section id="chat-view" class="w-full flex-1 flex flex-col hidden">
+      <div id="chat-container" class="flex-1 overflow-y-auto px-4 py-6 space-y-6 max-h-[65vh]">
+        <!-- JS로 질문/답변 카드가 들어갑니다 -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 3. 하단 입력바 & 도구 버튼 (Footer) -->
+  <footer class="w-full bg-[#f8f9fa] py-4 px-6">
+    <div class="max-w-[1200px] mx-auto flex items-center justify-between gap-3">
+      
+      <!-- 초기화 버튼 (좌측) -->
+      <button id="btn-reset" title="대화 초기화 및 홈으로" class="w-12 h-12 rounded-full bg-[#5489ea] text-white flex items-center justify-center shadow hover:bg-blue-600 transition flex-shrink-0">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+      </button>
+
+      <!-- 중앙 입력바 -->
+      <div class="flex-1 bg-white border border-gray-300 rounded-full px-5 py-2.5 shadow-sm flex items-center gap-3">
+        <button type="button" class="text-blue-500 hover:text-blue-700 flex-shrink-0">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+          </svg>
+        </button>
+        <input 
+          type="text" 
+          id="chat-input" 
+          placeholder="AI에게 질문하세요" 
+          class="flex-1 bg-transparent outline-none text-base text-gray-800 placeholder-gray-400"
+        />
+        <button id="btn-send" type="button" class="w-8 h-8 rounded-full bg-[#5489ea] text-white flex items-center justify-center hover:bg-blue-600 transition flex-shrink-0">
+          <svg class="w-4 h-4 transform rotate-90" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- 우측 도구 버튼들 -->
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <!-- A-Immune 건의 접수 버튼 (F-01) -->
+        <button 
+          id="btn-report" 
+          title="오류 신고 및 건의 접수" 
+          class="w-12 h-12 rounded-full bg-[#3b82f6] text-white flex items-center justify-center shadow hover:bg-blue-700 transition overflow-hidden"
+        >
+          <img src="Button/Primary/Medium/Default/Muni.png" alt="건의접수" class="w-full h-full object-cover" onerror="this.onerror=null; this.parentNode.innerHTML='<span class=\'text-xs font-bold\'>건의</span>';" />
+        </button>
+
+        <!-- 다크모드 -->
+        <button title="다크모드" class="w-12 h-12 rounded-full bg-[#5489ea] text-white flex items-center justify-center shadow hover:bg-blue-600 transition">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
