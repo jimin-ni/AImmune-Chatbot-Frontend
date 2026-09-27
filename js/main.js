@@ -7,6 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnReset = document.getElementById('btn-reset');
   const btnBack = document.getElementById('btn-back');
   const btnReport = document.getElementById('btn-report');
+  const btnReport2 = document.getElementById('btn-report2');
+  const btnReport3 = document.getElementById('btn-report3');
+
   
   let isChatStarted = false;
   
