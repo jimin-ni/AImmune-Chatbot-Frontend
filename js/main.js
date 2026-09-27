@@ -150,4 +150,13 @@ document.addEventListener('DOMContentLoaded', () => {
   chatInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') handleSend();
   });
+
+
+  if (btnReport2) {
+    btnReport2.addEventListener('click', () => {
+      // 팝업 창(window.open) 대신 새 커스텀 건의 접수 페이지로 이동
+      window.location.href = 'report_form.html';
+    });
+  }
+
 });
