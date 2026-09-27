@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // 건의 접수 팝업
   btnReport.addEventListener('click', () => {
-    const n8nFormUrl = 'https://your-n8n-instance.com/form/a-immune-complaint';
+    const n8nFormUrl = 'https://blitzrattle.app.n8n.cloud/form/a-immune-report-v2';
     window.open(n8nFormUrl, 'A-Immune 건의접수', 'width=650,height=800,scrollbars=yes');
   });
   
