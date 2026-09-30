@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // 건의 접수 팝업
   btnReport.addEventListener('click', () => {
-    const n8nFormUrl = 'https://blitzrattle.app.n8n.cloud/form/a-immune-report-v2';
+    const n8nFormUrl = 'https://blitzrattle.app.n8n.cloud/form/a-immune-report';
     window.open(n8nFormUrl, 'A-Immune 건의접수', 'width=650,height=800,scrollbars=yes');
   });
   
