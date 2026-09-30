@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>A-Immune 건의 접수 - I'M JOY</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* 바닷속 수중 배경 애니메이션 */
+    body {
+      background: linear-gradient(135deg, #091e3a 0%, #2f80ed 50%, #2d9087 100%);
+      background-size: 400% 400%;
+      animation: oceanGradient 15s ease infinite;
+      overflow-x: hidden;
+    }
+
+    @keyframes oceanGradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* 글래스모피즘 카드 스타일 */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+    }
+
+    /* 글래스모피즘 입력 필드 */
+    .glass-input {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      color: #1e293b;
+      transition: all 0.2s ease;
+    }
+    .glass-input:focus {
+      background: #ffffff;
+      outline: none;
+      ring: 2px solid #3b82f6;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+    }
+
+    /* 캐릭터 둥둥 떠다니는 애니메이션 */
+    .floating-character {
+      animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-18px) rotate(2deg); }
+    }
+
+    /* 수중 기포 애니메이션 */
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      animation: rise 8s infinite ease-in;
+      pointer-events: none;
+    }
+    @keyframes rise {
+      0% { transform: translateY(100vh) scale(0); opacity: 0; }
+      50% { opacity: 0.6; }
+      100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between font-sans text-white relative">
+
+  <!-- 수중 물방울 기포 이펙트 배경 -->
+  <div id="bubble-container" class="absolute inset-0 overflow-hidden pointer-events-none z-0"></div>
+
+  <!-- 1. 헤더 영역 (기존 index.html 헤더 구조 동일 적용) -->
+  <header class="w-full bg-white/90 backdrop-blur-md relative z-10 text-gray-800 shadow-sm">
+    <div class="max-w-[1600px] mx-auto px-8 py-3 flex items-center justify-between">
+      <div class="flex items-center">
+        <img src="Logo/Ktmns.png" alt="kt m&s" class="h-6 object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/110x32?text=kt+m%26s';" />
+      </div>
+      <div class="flex flex-col items-center">
+        <img src="Logo/Nexus.png" alt="NEXUS" class="h-[60px] object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/80x36?text=NEXUS';" />
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="flex flex-col items-end gap-1">
+          <img src="Button/Secondary/Medium/Default/Mypage.png" alt="김지민 *" class="h-7 object-contain cursor-pointer" />
+          <button id="btn-logout" type="button" class="focus:outline-none">
+            <img src="Button/Secondary/Medium/Default/Logout.png" alt="로그아웃" class="h-7 object-contain hover:opacity-80 transition" />
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 서브 바 (뒤로가기 버튼) -->
+    <div class="w-full border-t border-b border-gray-200 bg-white/80">
+      <div class="max-w-[1600px] mx-auto px-8 py-2.5 flex items-center gap-3 font-semibold text-sm text-gray-700">
+        <a href="index_2.html" class="hover:text-blue-600 flex items-center gap-1 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          메인으로 돌아가기
+        </a>
+        <span class="text-gray-400">|</span>
+        <span>A-Immune 건의 접수</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 2. 본문 영역 (3D 캐릭터 + 글래스모피즘 폼) -->
+  <main class="flex-1 w-full max-w-[1200px] mx-auto p-6 flex flex-col md:flex-row items-center justify-center gap-10 relative z-10 my-8">
+    
+    <!-- [좌측: 마우스를 따라다니는 3D 캐릭터 영역] -->
+    <div class="w-full md:w-5/12 flex flex-col items-center justify-center floating-character select-none">
+      <div class="relative w-[280px] h-[360px] flex items-center justify-center">
+        <!-- 메인 캐릭터 이미지 (말미잘 캐릭터) -->
+        <img src="말미잘 캐릭터 2.jpg" alt="3D 메인 캐릭터" class="w-full h-full object-contain filter drop-shadow-[0_15px_25px_rgba(0,0,0,0.4)]" onerror="this.onerror=null; this.src='https://via.placeholder.com/280x360/ff77a9/ffffff?text=JOY+3D+Character';" />
+
+        <!-- 눈동자 오버레이 레이어 (마우스 따라다니는 동공) -->
+        <div class="absolute top-[32%] left-[43%] -translate-x-1/2 flex gap-3 pointer-events-none">
+          <!-- 왼쪽 눈 -->
+          <div class="eye w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-inner relative overflow-hidden">
+            <div class="pupil w-3.5 h-3.5 bg-black rounded-full transition-transform duration-75"></div>
+          </div>
+          <!-- 오른쪽 눈 -->
+          <div class="eye w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-inner relative overflow-hidden">
+            <div class="pupil w-3.5 h-3.5 bg-black rounded-full transition-transform duration-75"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 text-center">
+        <p class="text-xl font-bold text-cyan-200 drop-shadow-md">"무엇이든 편하게 의견을 남겨주세요!"</p>
+        <p class="text-xs text-blue-100/80 mt-1">JOY 에이전트가 신속하게 검토할게요 🌊</p>
+      </div>
+    </div>
+
+    <!-- [우측: 글래스모피즘 건의 접수 폼] -->
+    <div class="w-full md:w-7/12 glass-card rounded-3xl p-8 md:p-10 text-gray-800">
+      <div class="mb-6 border-b border-white/20 pb-4">
+        <h2 class="text-2xl font-bold text-white drop-shadow">A-Immune 사내 Agent 건의 접수</h2>
+        <p class="text-sm text-blue-100 mt-1">Agent 사용 중 발생한 오류·불편·개선 요청을 등록합니다.</p>
+      </div>
+
+      <form id="report-form" class="space-y-4">
+        <!-- 1. 사용 Agent -->
+        <div>
+          <label class="block text-xs font-bold text-white mb-1">사용 Agent <span class="text-red-300">*</span></label>
+          <select id="agent" required class="w-full p-3 rounded-xl glass-input text-sm">
+            <option value="" disabled selected>Select an option ...</option>
+            <option value="JOY">I'M JOY (영업지원 AI)</option>
+            <option value="A-Immune">A-Immune 핵심 Agent</option>
+          </select>
+        </div>
+
+        <!-- 2. 발생일 및 발생시간 (2열 배치) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-white mb-1">발생일 <span class="text-red-300">*</span></label>
+            <input type="date" id="event-date" required class="w-full p-3 rounded-xl glass-input text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-white mb-1">발생시간 (HH:MM) <span class="text-red-300">*</span></label>
+            <input type="time" id="event-time" required class="w-full p-3 rounded-xl glass-input text-sm" />
+          </div>
+        </div>
+
+        <!-- 3. 카테고리 -->
+        <div>
+          <label class="block text-xs font-bold text-white mb-1">카테고리 <span class="text-red-300">*</span></label>
+          <select id="category" required class="w-full p-3 rounded-xl glass-input text-sm">
+            <option value="" disabled selected>Select an option ...</option>
+            <option value="UI/화면">UI/화면 오류</option>
+            <option value="AI 답변 품질">AI 답변 오답 및 불만족</option>
+            <option value="기능 장애">기능 동작 불가/오류</option>
+            <option value="기타 건의">기타 개선 건의</option>
+          </select>
+        </div>
+
+        <!-- 4. UI/화면 이슈 -->
+        <div>
+          <label class="block text-xs font-bold text-white mb-1">UI/화면 이슈</label>
+          <textarea id="ui-issue" rows="2" placeholder="화면 관련 특이사항이 있다면 작성해주세요" class="w-full p-3 rounded-xl glass-input text-sm resize-none"></textarea>
+        </div>
+
+        <!-- 5. 문제 상황 -->
+        <div>
+          <label class="block text-xs font-bold text-white mb-1">문제 상황 <span class="text-red-300">*</span></label>
+          <textarea id="problem" rows="3" required placeholder="발생한 문제 상황을 자세히 적어주세요" class="w-full p-3 rounded-xl glass-input text-sm resize-none"></textarea>
+        </div>
+
+        <!-- 6. 요청 내용 -->
+        <div>
+          <label class="block text-xs font-bold text-white mb-1">요청 내용 <span class="text-red-300">*</span></label>
+          <textarea id="request-content" rows="3" required placeholder="개선되기를 바라는 내용을 작성해주세요" class="w-full p-3 rounded-xl glass-input text-sm resize-none"></textarea>
+        </div>
+
+        <!-- 7. 오류 화면 첨부 (선택) -->
+        <div>
+          <label class="block text-xs font-bold text-white mb-1">오류 화면 첨부 (선택)</label>
+          <input type="file" id="attachment" class="w-full p-2.5 rounded-xl glass-input text-xs text-gray-600 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer" />
+        </div>
+
+        <!-- 8. 제출 버튼 -->
+        <button type="submit" class="w-full py-4 mt-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold rounded-xl shadow-lg hover:shadow-cyan-500/30 transition transform hover:-translate-y-0.5 active:translate-y-0">
+          제출하기
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <footer class="w-full text-center py-4 text-xs text-blue-100/60 relative z-10">
+    Form automated with n8n & NEXUS AI Agent System
+  </footer>
+
+  <!-- 3. 스크립트: 마우스 따라가는 눈동자 및 수중 버블 이펙트 -->
+  <script>
+    // [1] 마우스 이동 감지 및 눈동자(동공) 움직임 처리
+    document.addEventListener('mousemove', (e) => {
+      const eyes = document.querySelectorAll('.eye');
+      eyes.forEach((eye) => {
+        const rect = eye.getBoundingClientRect();
+        // 눈의 중심 좌표 구하기
+        const eyeCenterX = rect.left + rect.width / 2;
+        const eyeCenterY = rect.top + rect.height / 2;
+
+        // 마우스 커서와 눈 중심 간의 각도 및 거리 계산
+        const angle = Math.atan2(e.clientY - eyeCenterY, e.clientX - eyeCenterX);
+        const distance = Math.min(
+          Math.hypot(e.clientX - eyeCenterX, e.clientY - eyeCenterY),
+          8 // 눈동자가 이동할 수 있는 최대 거리(px)
+        );
+
+        // X, Y 이동값 계산
+        const pupilX = Math.cos(angle) * distance;
+        const pupilY = Math.sin(angle) * distance;
+
+        const pupil = eye.querySelector('.pupil');
+        pupil.style.transform = `translate(${pupilX}px, ${pupilY}px)`;
+      });
+    });
+
+    // [2] 수중 버블(물방울) 동적 생성
+    const bubbleContainer = document.getElementById('bubble-container');
+    for (let i = 0; i < 20; i++) {
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      const size = Math.random() * 20 + 8; // 8px ~ 28px 크기
+      bubble.style.width = `${size}px`;
+      bubble.style.height = `${size}px`;
+      bubble.style.left = `${Math.random() * 100}%`;
+      bubble.style.animationDelay = `${Math.random() * 8}s`;
+      bubble.style.animationDuration = `${Math.random() * 6 + 6}s`;
+      bubbleContainer.appendChild(bubble);
+    }
+
+    // [3] n8n 웹훅 전송 이벤트 처리
+    document.getElementById('report-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = {
+        agent: document.getElementById('agent').value,
+        eventDate: document.getElementById('event-date').value,
+        eventTime: document.getElementById('event-time').value,
+        category: document.getElementById('category').value,
+        uiIssue: document.getElementById('ui-issue').value,
+        problem: document.getElementById('problem').value,
+        requestContent: document.getElementById('request-content').value,
+        submittedAt: new Date().toISOString()
+      };
+
+      // n8n Webhook URL 연결 주소
+      const n8nWebhookUrl = 'https://blitzrattle.app.n8n.cloud/webhook/a-immune-report-v2';
+
+      try {
+        const response = await fetch(n8nWebhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+          alert('성공적으로 건의사항이 접수되었습니다!');
+          window.location.href = 'index_2.html'; // 제출 완료 후 메인으로 이동
+        } else {
+          alert('접수 중 오류가 발생했습니다. 다시 시도해주세요.');
+        }
+      } catch (err) {
+        console.error('제출 에러:', err);
+        alert('서버와 통신할 수 없습니다.');
+      }
+    });
+  </script>
+</body>
+</html>

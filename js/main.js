@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnBack = document.getElementById('btn-back');
   const btnReport = document.getElementById('btn-report');
   const btnHelp = document.getElementById('btn-help');
+  const btnReport2 = document.getElementById('btn-report2');
+  const btnReport3 = document.getElementById('btn-report3');
+
   
   let isChatStarted = false;
   
@@ -139,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // 건의 접수 팝업
   btnReport.addEventListener('click', () => {
-    const n8nFormUrl = 'https://your-n8n-instance.com/form/a-immune-complaint';
+    const n8nFormUrl = 'https://blitzrattle.app.n8n.cloud/form/a-immune-report-v2';
     window.open(n8nFormUrl, 'A-Immune 건의접수', 'width=650,height=800,scrollbars=yes');
   });
   
@@ -159,4 +162,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // window.open('dashboard.html', '_blank');
   });
 }
+
+  if (btnReport2) {
+    btnReport2.addEventListener('click', () => {
+      // 팝업 창(window.open) 대신 새 커스텀 건의 접수 페이지로 이동
+      window.location.href = 'report_form.html';
+    });
+  }
+
 });
