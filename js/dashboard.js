@@ -341,8 +341,8 @@ async function approve() {
   try {
     await sendDecision({
       revisionId: item.revisionId,
-      decision: '승인',
-      rejectReason: '',
+      decision: 'APPROVE',        // WF-02는 'APPROVE'/'REJECT'를 기대 (한글 '승인' 아님)
+      rejectionReason: '',        // WF-02가 읽는 필드명은 rejectionReason
       managerId: CONFIG.MANAGER_ID,
     });
     removeFromList(item.revisionId);
@@ -367,8 +367,8 @@ async function submitReject() {
   try {
     await sendDecision({
       revisionId: item.revisionId,
-      decision: '반려',
-      rejectReason: reason,
+      decision: 'REJECT',         // WF-02는 'APPROVE'/'REJECT'를 기대
+      rejectionReason: reason,    // WF-02가 읽는 필드명은 rejectionReason
       managerId: CONFIG.MANAGER_ID,
     });
     removeFromList(item.revisionId);
