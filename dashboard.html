@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>A-IMMUNE 관리자 대시보드</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* 커스텀 스크롤바 */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+  </style>
+</head>
+<body class="bg-[#f4f5f7] min-h-screen font-sans text-gray-800 flex flex-col">
+
+  <!-- 1. 상단 헤더 -->
+  <header class="w-full bg-white border-b border-gray-200 px-8 py-4 flex items-center gap-12 sticky top-0 z-50">
+    <div class="flex items-center">
+      <img src="Logo/Ktmns.png" alt="kt m&s" class="h-6 object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/110x32?text=kt+m%26s';" />
+    </div>
+    <h1 class="text-xl font-bold text-gray-800 tracking-tight">A-IMMUNE <span class="text-base font-semibold text-gray-600 ml-2">관리자 대시보드</span></h1>
+  </header>
+
+  <!-- 2. 본문 영역 -->
+  <div class="flex-1 flex max-w-[1920px] w-full mx-auto p-6 gap-6 overflow-hidden">
+    
+    <!-- 2-1. 좌측 프로필 & 네비게이션 -->
+    <aside class="w-64 bg-white rounded-2xl p-5 shadow-sm border border-gray-200 flex flex-col justify-between shrink-0">
+      <div class="space-y-6">
+        <!-- 프로필 정보 -->
+        <div class="flex items-center gap-3 pb-4 border-b border-gray-100">
+          <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold">
+            👤
+          </div>
+          <div>
+            <div class="font-bold text-gray-900 text-base">김지민 차장</div>
+            <div class="text-xs text-gray-400">KT m&s</div>
+          </div>
+        </div>
+
+        <!-- 서브 메뉴 아이콘 -->
+        <nav class="flex gap-4 text-gray-400 justify-start px-1">
+          <button class="p-2 rounded-lg bg-gray-100 text-gray-700 transition">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 002-2h2a2 2 0 002 2v2a2 2 0 00-2 2h-2a2 2 0 00-2-2V5zM11 13a2 2 0 002-2h2a2 2 0 002 2v2a2 2 0 00-2 2h-2a2 2 0 00-2-2v-2z"></path></svg>
+          </button>
+          <button class="p-2 rounded-lg hover:bg-gray-100 hover:text-gray-600 transition">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"></path></svg>
+          </button>
+          <button class="p-2 rounded-lg hover:bg-gray-100 hover:text-gray-600 transition">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path></svg>
+          </button>
+        </nav>
+
+        <!-- 관리자 아이디 카트 -->
+        <div class="bg-gray-100 rounded-xl p-3 flex justify-between items-center text-xs">
+          <span class="text-gray-500 font-medium">관리자 아이디</span>
+          <span class="font-bold text-gray-700">M-001</span>
+        </div>
+      </div>
+
+      <!-- 하단 마스코트 캐릭터 -->
+      <div class="mt-auto pt-6 flex justify-center">
+        <div class="w-32 h-32 bg-pink-100 rounded-full flex items-center justify-center text-5xl shadow-inner">
+          🐙
+        </div>
+      </div>
+    </aside>
+
+    <!-- 2-2. 중앙: 진행 대기 목록 -->
+    <section class="w-80 bg-white rounded-2xl p-5 shadow-sm border border-gray-200 flex flex-col shrink-0">
+      <h2 class="text-base font-bold text-gray-800 mb-4 px-1">진행 대기 목록</h2>
+      
+      <div class="space-y-3 overflow-y-auto pr-1 flex-1" id="pending-list">
+        <!-- 대기 카드 1 -->
+        <div class="item-card border border-gray-200 hover:border-gray-300 bg-white rounded-2xl p-4 cursor-pointer transition" data-id="G-018-JOY">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-500">우선순위 1</span>
+            <span class="text-[11px] text-gray-400">2026-09-29 13:05</span>
+          </div>
+          <h3 class="font-bold text-sm text-gray-800 mb-1">G-018 대체 상품 추천</h3>
+          <p class="text-xs text-gray-500 mb-3">대체 상품 제안 기준 보완 필요</p>
+          <div class="text-[11px] font-semibold text-gray-600">AGENT JOY</div>
+        </div>
+
+        <!-- 대기 카드 2 -->
+        <div class="item-card border border-gray-200 hover:border-gray-300 bg-white rounded-2xl p-4 cursor-pointer transition" data-id="G-018-SAM">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-600">우선순위 2</span>
+            <span class="text-[11px] text-gray-400">2026-09-29 13:05</span>
+          </div>
+          <h3 class="font-bold text-sm text-gray-800 mb-1">G-018 대체 상품 추천</h3>
+          <p class="text-xs text-gray-500 mb-3">대체 상품 제안 기준 보완 필요</p>
+          <div class="text-[11px] font-semibold text-gray-600">AGENT SAM</div>
+        </div>
+
+        <!-- 대기 카드 3 -->
+        <div class="item-card border border-gray-200 hover:border-gray-300 bg-white rounded-2xl p-4 cursor-pointer transition" data-id="G-018-HEUNG">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-600">우선순위 3</span>
+            <span class="text-[11px] text-gray-400">2026-09-29 13:05</span>
+          </div>
+          <h3 class="font-bold text-sm text-gray-800 mb-1">G-018 대체 상품 추천</h3>
+          <p class="text-xs text-gray-500 mb-3">대체 상품 제안 기준 보완 필요</p>
+          <div class="text-[11px] font-semibold text-gray-600">AGENT 흥부장</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2-3. 우측: 지침서 개정 승인 상세 (초기에는 hidden 상태) -->
+    <main id="detail-panel" class="hidden flex-1 bg-white rounded-2xl p-7 shadow-sm border border-gray-200 overflow-y-auto flex-col justify-between">
+      
+      <div class="space-y-6">
+        <!-- 헤더 정보 -->
+        <div class="flex justify-between items-start border-b border-gray-100 pb-5">
+          <div>
+            <h2 class="text-lg font-bold text-gray-800">지침서 개정 승인</h2>
+            <div class="flex items-center gap-2 mt-2">
+              <span class="text-xl font-bold text-gray-900" id="detail-title">G-018 대체 상품 추천</span>
+              <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600" id="detail-priority">우선순위 1</span>
+              <span class="text-xs font-bold px-3 py-1 rounded-full bg-gray-900 text-white" id="detail-agent">AGENT JOY</span>
+            </div>
+            <div class="text-xs text-gray-400 mt-2 space-x-3">
+              <span>지침서 버전: <strong class="text-gray-600">v1.0 → v1.1</strong></span>
+              <span>•</span>
+              <span>근거 신고 <strong class="text-gray-600">3건</strong></span>
+            </div>
+          </div>
+          <div class="text-right text-xs text-gray-400 space-y-1">
+            <div>요청일: 2026-09-29 13:05</div>
+            <div>사건 발생일: 2026-09-29 13:05</div>
+          </div>
+        </div>
+
+        <!-- 1. 개정 사유 -->
+        <div>
+          <h3 class="text-sm font-bold text-gray-800 mb-2">개정 사유</h3>
+          <p class="text-xs text-gray-600 bg-gray-50 p-3.5 rounded-xl border border-gray-100 leading-relaxed">
+            고객 조건과 정확히 일치하는 상품이 없을 때 대체 상품을 제시하지 못하는 사례가 반복되어 기준 보완이 필요합니다.
+          </p>
+        </div>
+
+        <!-- 2. 개정 제안 (요약 비교) -->
+        <div>
+          <h3 class="text-sm font-bold text-gray-800 mb-2">개정 제안</h3>
+          <div class="grid grid-cols-2 gap-4 items-center relative">
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+              <div class="text-xs font-bold text-gray-500 mb-2">수정 전 <span class="font-normal text-gray-400 ml-1">v1.0</span></div>
+              <p class="text-xs text-gray-600 leading-relaxed">
+                고객 조건에 정확히 일치하는 상품이 없는 경우 상품 조회 또는 추가 확인이 필요함을 안내한다.
+              </p>
+            </div>
+
+            <div class="absolute left-1/2 -translate-x-1/2 z-10 text-gray-400 font-bold text-sm">→</div>
+
+            <div class="bg-white p-4 rounded-xl border-2 border-red-500 shadow-sm">
+              <div class="text-xs font-bold text-red-500 mb-2">수정 제안 <span class="font-normal text-red-400 ml-1">v1.1</span></div>
+              <p class="text-xs text-gray-800 font-medium leading-relaxed">
+                고객 조건에 정확히 일치하는 상품이 없는 경우 <span class="bg-red-50 text-red-600 font-bold px-1 rounded">현재 카탈로그에서 가장 가까운 대체 상품을 찾아 제안한다.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. 개정 제안 상세 (전체 지침서 비교) -->
+        <div>
+          <h3 class="text-sm font-bold text-gray-800 mb-2">개정 제안 상세</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="border border-gray-200 rounded-xl overflow-hidden">
+              <div class="bg-[#2b2d31] text-white px-4 py-2 text-xs font-bold flex justify-between">
+                <span>전체 현재 지침</span>
+                <span class="text-gray-400">v1.0</span>
+              </div>
+              <ol class="p-4 text-xs text-gray-600 space-y-2 list-decimal list-inside bg-gray-50/50 leading-relaxed">
+                <li>고객의 요구사항을 정확히 파악한다.</li>
+                <li>고객 조건에 정확히 일치하는 상품이 없는 경우 상품조회 또는 추가확인이 필요함을 안내한다.</li>
+                <li>상품 추천 시에는 가격, 혜택, 주요 사양을 함께 안내한다.</li>
+                <li>불확실한 정보는 임의로 안내하지 않으며, 필요한 경우 담당자 확인을 요청한다.</li>
+                <li>고객의 추가 문의가 있을 경우, 관련 정보를 재확인하여 안내한다.</li>
+              </ol>
+            </div>
+
+            <div class="border border-red-200 rounded-xl overflow-hidden shadow-sm">
+              <div class="bg-[#e60023] text-white px-4 py-2 text-xs font-bold flex justify-between">
+                <span>전체 변경 지침</span>
+                <span class="text-red-100">v1.1</span>
+              </div>
+              <ol class="p-4 text-xs text-gray-800 space-y-2 list-decimal list-inside bg-white leading-relaxed">
+                <li>고객의 요구사항을 정확히 파악한다.</li>
+                <li class="font-bold text-red-600 bg-red-50 p-0.5 rounded">고객 조건에 정확히 일치하는 상품이 없는 경우 현재 카탈로그에서 가장 가까운 대체 상품을 찾아 제안한다.</li>
+                <li>상품 추천 시에는 가격, 혜택, 주요 사양을 함께 안내한다.</li>
+                <li>불확실한 정보는 임의로 안내하지 않으며, 필요한 경우 담당자 확인을 요청한다.</li>
+                <li>고객의 추가 문의가 있을 경우, 관련 정보를 재확인하여 안내한다.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. 근거 및 추가 정보 -->
+        <div class="pt-2">
+          <h3 class="text-sm font-bold text-gray-800 mb-3">근거 및 추가 정보</h3>
+          <div class="bg-gray-50 rounded-xl p-4 border border-gray-100 text-xs space-y-2.5">
+            <div class="flex items-center gap-4">
+              <span class="w-20 text-gray-500 font-medium">근거 신고</span>
+              <div class="flex gap-2">
+                <span class="bg-white border border-gray-200 text-gray-700 px-2.5 py-1 rounded-md font-mono">RPT-20260929-001</span>
+                <span class="bg-white border border-gray-200 text-gray-700 px-2.5 py-1 rounded-md font-mono">RPT-20260929-002</span>
+                <span class="bg-white border border-gray-200 text-gray-700 px-2.5 py-1 rounded-md font-mono">RPT-20260929-003</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="w-20 text-gray-500 font-medium">우선순위 이유</span>
+              <span class="text-gray-800 font-semibold">동일 지침 신고 3건 / CRITICAL</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="w-20 text-gray-500 font-medium">담당자</span>
+              <span class="text-gray-800">김지민 차장 M-001</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. 승인/반려 하단 동의 영역 -->
+      <div class="mt-8 pt-6 border-t border-gray-100 flex flex-col items-center space-y-4">
+        <!-- 반려 사유 입력 폼 (기본 hidden) -->
+        <div id="reject-reason-box" class="w-full max-w-lg hidden flex-col gap-2">
+          <label class="text-xs font-bold text-gray-700">반려 사유를 기입해 주세요.</label>
+          <textarea id="reject-reason-input" rows="3" placeholder="반려 사유를 입력하세요..." class="w-full p-3 border border-gray-300 rounded-xl text-xs outline-none focus:border-red-500 resize-none"></textarea>
+          <div class="flex justify-end gap-2">
+            <button id="btn-reject-cancel" class="px-4 py-1.5 bg-gray-200 text-gray-700 text-xs rounded-lg font-medium">취소</button>
+            <button id="btn-reject-submit" class="px-4 py-1.5 bg-red-600 text-white text-xs rounded-lg font-medium hover:bg-red-700">반려 확정</button>
+          </div>
+        </div>
+
+        <!-- 기본 동의 질문 & 버튼 -->
+        <div id="action-button-group" class="flex flex-col items-center space-y-3 w-full">
+          <p class="text-xs font-bold text-gray-600">해당 개정 제안과 수정에 동의하시나요?</p>
+          <div class="flex gap-4 w-full justify-center max-w-xs">
+            <button id="btn-approve" type="button" class="flex-1 py-3 bg-[#e60023] hover:bg-red-700 text-white font-bold text-sm rounded-xl transition shadow-sm">
+              승인
+            </button>
+            <button id="btn-reject" type="button" class="flex-1 py-3 bg-[#2b2d31] hover:bg-gray-800 text-white font-bold text-sm rounded-xl transition shadow-sm">
+              반려
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

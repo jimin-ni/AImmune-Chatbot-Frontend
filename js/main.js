@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnReset = document.getElementById('btn-reset');
   const btnBack = document.getElementById('btn-back');
   const btnReport = document.getElementById('btn-report');
+  const btnHelp = document.getElementById('btn-help');
   
   let isChatStarted = false;
   
@@ -147,4 +148,15 @@ document.addEventListener('DOMContentLoaded', () => {
   chatInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') handleSend();
   });
+
+  // help 버튼에서 관리자 대시보드 페이지로 연결
+  if (btnHelp) {
+  btnHelp.addEventListener('click', () => {
+    // 1. 현재 창에서 대시보드로 이동할 경우
+    window.location.href = 'dashboard.html'; // 외부 URL일 경우 'https://...' 입력
+    
+    // 2. 새 탭에서 대시보드를 열고 싶을 경우 (필요 시 선택)
+    // window.open('dashboard.html', '_blank');
+  });
+}
 });
