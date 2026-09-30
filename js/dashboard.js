@@ -9,11 +9,11 @@
  * ------------------------------------------------------------------------- */
 const CONFIG = {
   // n8n Webhook 기본 주소 (끝에 / 없이)
-  N8N_BASE_URL: 'https://YOUR-N8N-HOST',       // 예: https://n8n.example.com
+  N8N_BASE_URL: 'https://blitzrattle.app.n8n.cloud',  // 실제 n8n 주소
   PENDING_PATH: '/webhook/a-immune-admin-pending',      // WF-04 조회
   DECISION_PATH: '/webhook/a-immune-revision-decision',  // WF-02 승인/반려
   MANAGER_ID: 'M-001',   // 현재 로그인한 관리자 (담당자 표시/결정 전송용)
-  USE_SAMPLE_ON_FAIL: true, // n8n 연결 실패 시 아래 샘플 데이터로 화면 확인
+  USE_SAMPLE_ON_FAIL: false, // true로 바꾸면 연결 실패 시 샘플 데이터 표시
 };
 
 /* ---------------------------------------------------------------------------
@@ -75,9 +75,29 @@ function renderContent(content, highlight) {
  * ------------------------------------------------------------------------- */
 async function fetchPending() {
   const url = CONFIG.N8N_BASE_URL + CONFIG.PENDING_PATH;
-  const res = await fetch(url, { method: 'GET' });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
+  console.log('[A-IMMUNE] 조회 요청 →', url);
+
+  // 15초 안에 응답 없으면 강제 중단 (무한 로딩 방지)
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 15000);
+  let res;
+  try {
+    res = await fetch(url, { method: 'GET', signal: ctrl.signal });
+  } catch (e) {
+    if (e.name === 'AbortError') {
+      throw new Error('응답 시간 초과(15초). n8n 워크플로가 Active인지, MySQL 노드가 에러 없이 Respond까지 도달하는지 확인하세요.');
+    }
+    // TypeError: Failed to fetch → 대부분 CORS 또는 주소/네트워크 문제
+    throw new Error('네트워크/CORS 오류(' + e.message + '). 운영 URL을 브라우저에 직접 열어 확인하세요.');
+  } finally {
+    clearTimeout(timer);
+  }
+
+  console.log('[A-IMMUNE] 응답 status →', res.status);
+  if (!res.ok) throw new Error('HTTP ' + res.status + ' — 워크플로 Active 여부 / 웹훅 경로를 확인하세요.');
+
   const data = await res.json();
+  console.log('[A-IMMUNE] 응답 본문 →', data);
   // WF-04 응답 형태: { ok, count, items:[...] }
   return Array.isArray(data.items) ? data.items : [];
 }
@@ -372,19 +392,36 @@ function removeFromList(id) {
  * 7. 초기화
  * ------------------------------------------------------------------------- */
 async function init() {
+  // 설정을 안 바꾼 경우 바로 안내
+  if (CONFIG.N8N_BASE_URL.includes('YOUR-N8N-HOST')) {
+    document.getElementById('listWrap').innerHTML =
+      `<div class="rounded-2xl bg-white p-6 text-center text-salmon shadow-card">
+         dashboard.js의 <b>CONFIG.N8N_BASE_URL</b>을 실제 n8n 주소로 바꿔주세요.
+       </div>`;
+    return;
+  }
   try {
     state.items = await fetchPending();
+    renderList();
   } catch (e) {
-    console.warn('n8n 조회 실패:', e.message);
+    console.error('[A-IMMUNE] 조회 실패:', e);
+    // 실패 원인을 화면에 그대로 노출 (무엇이 문제인지 바로 파악)
+    document.getElementById('listWrap').innerHTML =
+      `<div class="rounded-2xl bg-white p-6 text-[15px] leading-relaxed text-ink shadow-card">
+         <div class="mb-2 text-[17px] font-semibold text-salmon">데이터를 불러오지 못했습니다</div>
+         <div class="mb-3 rounded-lg bg-canvas p-3 text-ink/80">${esc(e.message)}</div>
+         <div class="text-ink/60">
+           확인: ① 워크플로 Active 여부 ② 운영 URL 직접 열기
+           <span class="break-all">(${esc(CONFIG.N8N_BASE_URL + CONFIG.PENDING_PATH)})</span>
+           ③ n8n Executions에서 MySQL 노드 에러 ④ Respond 노드 CORS 헤더
+         </div>
+       </div>`;
+    // 화면 레이아웃만 보고 싶으면 CONFIG.USE_SAMPLE_ON_FAIL=true 로 샘플 표시
     if (CONFIG.USE_SAMPLE_ON_FAIL) {
       state.items = SAMPLE_ITEMS;
-    } else {
-      document.getElementById('listWrap').innerHTML =
-        `<div class="py-16 text-center text-salmon">데이터를 불러오지 못했습니다.</div>`;
-      return;
+      renderList();
     }
   }
-  renderList();
 }
 
 /* ---------------------------------------------------------------------------
@@ -435,4 +472,9 @@ const SAMPLE_ITEMS = [
   },
 ];
 
-document.addEventListener('DOMContentLoaded', init);
+// DOM이 이미 준비됐으면 즉시 실행 (script 로드 타이밍에 따른 미실행 방지)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
