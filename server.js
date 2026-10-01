@@ -25,11 +25,18 @@ app.get(/\.[a-zA-Z0-9]+$/, (req, res) => {
   res.status(404).send('Not found: ' + req.path);
 });
  
-// 5) 그 외 경로는 챗봇으로 (기존 동작 유지)
+app.get('/history', (req, res) => {
+  res.sendFile(path.join(__dirname, 'history.html'));
+});
+
+// 그 외 경로는 챗봇으로 (기존 동작 유지)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
+
+
  
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
