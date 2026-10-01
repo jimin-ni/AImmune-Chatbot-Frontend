@@ -577,3 +577,7 @@ if (document.readyState === 'loading') {
 document.getElementById('btnHistory')?.addEventListener('click', () => {
   window.location.href = '/history.html';
 });
+
+document.getElementById('btnHome')?.addEventListener('click', () => {
+  window.location.href = '/dashboard.html';
+});
