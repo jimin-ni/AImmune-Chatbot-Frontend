@@ -445,6 +445,7 @@ async function approve() {
   if (!item) return;
   const btn = document.getElementById('btnApprove');
   if (btn) { btn.disabled = true; btn.textContent = '처리 중…'; }
+  window.Muni?.react('approve');   // 뮤니: 승인 애니메이션
   try {
     await postJson(CONFIG.DECISION_PATH, {
       revisionId: item.revisionId,
@@ -470,6 +471,7 @@ async function submitReject() {
   }
   const btn = document.getElementById('btnRejectSubmit');
   if (btn) { btn.disabled = true; btn.textContent = '처리 중…'; }
+  window.Muni?.react('reject');   // 뮤니: 반려 애니메이션
   try {
     await postJson(CONFIG.DECISION_PATH, {
       revisionId: item.revisionId,
@@ -489,6 +491,7 @@ async function confirmTech() {
   if (!t) return;
   const btn = document.getElementById('btnConfirmTech');
   if (btn) { btn.disabled = true; btn.textContent = '처리 중…'; }
+  window.Muni?.react('confirm');   // 뮤니: 확인 애니메이션
   try {
     await postJson(CONFIG.TECH_CONFIRM_PATH, {
       reportId: t.reportId,

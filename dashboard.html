@@ -106,8 +106,11 @@
       <span class="ml-auto pr-2 text-[16px]" id="mgrId">M-001</span>
     </div>
 
-    <!-- 마스코트 이미지(선택) -->
-    <img src="img/waiting-1.png" alt="" class="mt-auto w-full object-contain" onerror="this.style.display='none'"/>
+    <!-- 뮤니 캐릭터 (평소 idle, 승인/반려/확인 시 애니메이션 전환) -->
+    <div class="mt-auto flex flex-col items-center pb-[500px]">
+      <img id="muni" src="img/muni-idle.gif" alt="뮤니" class="w-[150px] object-contain"
+           onerror="this.style.display='none'"/>
+    </div>
   </aside>
 
   <!-- ============ 메인 컨텐츠 ============ -->
@@ -131,6 +134,7 @@
     </section>
   </div>
 
+  <script src="js/muni.js"></script>
   <script src="js/dashboard.js"></script>
 </body>
 </html>

@@ -91,7 +91,11 @@
       <span class="ml-auto pr-2 text-[16px]" id="mgrId">M-001</span>
     </div>
 
-    <img src="img/waiting-1.png" alt="" class="mt-auto w-full object-contain" onerror="this.remove()"/>
+    <!-- 뮤니 캐릭터 (이 페이지는 idle만) -->
+    <div class="mt-auto flex flex-col items-center pb-[500px]">
+      <img id="muni" src="img/muni-idle.gif" alt="뮤니" class="w-[150px] object-contain"
+           onerror="this.style.display='none'"/>
+    </div>
   </aside>
 
   <!-- ============ 메인 컨텐츠 ============ -->
@@ -113,6 +117,7 @@
     </div>
   </main>
 
+  <script src="js/muni.js"></script>
   <script src="js/history.js"></script>
 </body>
 </html>
