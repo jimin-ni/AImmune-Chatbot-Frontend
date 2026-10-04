@@ -95,7 +95,7 @@ async function fetchHistory() {
 function renderFilter() {
   document.querySelectorAll('.filter-btn').forEach(btn => {
     const active = btn.dataset.filter === state.filter;
-    btn.className = 'filter-btn rounded-[12px] px-5 py-2 text-[16px] font-medium transition '
+    btn.className = 'filter-btn rounded-[14px] px-7 py-2.5 text-[22px] font-medium transition '
       + (active ? 'bg-ink text-white' : 'text-ink/60 hover:bg-canvas');
   });
 }
@@ -120,49 +120,49 @@ function filteredItems() {
 
 function statusBadge(decision) {
   if (decision === 'APPROVE') {
-    return `<span class="inline-flex items-center gap-1 rounded-[14px] bg-[#e7f7ef] px-3 py-1 text-[15px] font-semibold text-approve">● 승인</span>`;
+    return `<span class="inline-flex items-center gap-1.5 rounded-[16px] bg-[#e7f7ef] px-4 py-1.5 text-[21px] font-semibold text-approve">● 승인</span>`;
   }
   if (decision === 'REJECT') {
-    return `<span class="inline-flex items-center gap-1 rounded-[14px] bg-[#ffe6e1] px-3 py-1 text-[15px] font-semibold text-brand">● 반려</span>`;
+    return `<span class="inline-flex items-center gap-1.5 rounded-[16px] bg-[#ffe6e1] px-4 py-1.5 text-[21px] font-semibold text-brand">● 반려</span>`;
   }
-  return `<span class="inline-flex items-center rounded-[14px] bg-canvas px-3 py-1 text-[15px] font-medium text-ink/60">처리</span>`;
+  return `<span class="inline-flex items-center rounded-[16px] bg-canvas px-4 py-1.5 text-[21px] font-medium text-ink/60">처리</span>`;
 }
 
 function renderCard(item) {
   const r = riskStyle(item.riskLevel);
   const isReject = item.decision === 'REJECT';
   return `
-    <article class="flex flex-col rounded-[20px] bg-white p-6 shadow-card">
+    <article class="flex flex-col rounded-[20px] bg-white p-8 shadow-card">
       <!-- 상단: 긴급도 + 승인/반려 -->
-      <div class="mb-4 flex items-center justify-between">
+      <div class="mb-5 flex items-center justify-between">
         ${item.riskLevel
-          ? `<span class="inline-flex items-center rounded-[14px] ${r.bg} px-3 py-1 text-[14px] font-medium ${r.text}">긴급도 ${esc(item.riskLevel)}</span>`
+          ? `<span class="inline-flex items-center rounded-[16px] ${r.bg} px-4 py-1.5 text-[20px] font-medium ${r.text}">긴급도 ${esc(item.riskLevel)}</span>`
           : `<span></span>`}
         ${statusBadge(item.decision)}
       </div>
 
       <!-- 요약글 -->
-      <h3 class="mb-4 line-clamp-2 text-[20px] font-semibold leading-snug">${esc(item.summary)}</h3>
+      <h3 class="mb-5 line-clamp-2 text-[28px] font-semibold leading-snug">${esc(item.summary)}</h3>
 
       <!-- 메타: 에이전트 / 중복횟수 -->
-      <div class="mb-4 flex flex-wrap items-center gap-2">
-        <span class="inline-flex items-center gap-2 rounded-[14px] bg-canvas px-3 py-1 text-[14px] font-medium">
+      <div class="mb-5 flex flex-wrap items-center gap-2.5">
+        <span class="inline-flex items-center gap-2 rounded-[16px] bg-canvas px-4 py-1.5 text-[20px] font-medium">
           AGENT <span>${esc(item.agent)}</span>
         </span>
-        <span class="inline-flex items-center gap-1 rounded-[14px] bg-canvas px-3 py-1 text-[14px] font-medium">
+        <span class="inline-flex items-center gap-1 rounded-[16px] bg-canvas px-4 py-1.5 text-[20px] font-medium">
           중복 <span>${esc(item.duplicateCount)}</span>건
         </span>
       </div>
 
       <!-- 반려 사유 (반려일 때만) -->
       ${isReject ? `
-        <div class="mb-4 rounded-[14px] bg-[#fff6f4] p-4">
-          <div class="mb-1 text-[13px] font-semibold text-brand">반려 사유</div>
-          <p class="text-[15px] leading-relaxed text-ink/80">${esc(item.rejectionReason || '사유 미기재')}</p>
+        <div class="mb-5 rounded-[16px] bg-[#fff6f4] p-5">
+          <div class="mb-1.5 text-[18px] font-semibold text-brand">반려 사유</div>
+          <p class="text-[21px] leading-relaxed text-ink/80">${esc(item.rejectionReason || '사유 미기재')}</p>
         </div>` : ''}
 
       <!-- 하단: 처리일 / 담당자 -->
-      <div class="mt-auto flex items-center justify-between pt-2 text-[13px] text-muted">
+      <div class="mt-auto flex items-center justify-between pt-2 text-[18px] text-muted">
         <span>${esc(item.decidedAt || '')}</span>
         <span>${esc(item.managerId || '')}</span>
       </div>

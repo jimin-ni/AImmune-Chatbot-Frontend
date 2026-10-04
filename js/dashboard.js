@@ -145,17 +145,17 @@ function renderRevisionCard(item) {
   const title = `${esc(item.guideline?.itemId || '')} ${esc(item.guideline?.title || '')}`.trim();
   return `
     <button data-kind="REVISION" data-id="${esc(item.revisionId)}"
-      class="card-item w-full rounded-[20px] bg-white p-5 text-left shadow-card transition
+      class="card-item w-full rounded-[20px] bg-white p-6 text-left shadow-card transition
              ${active ? 'ring-2 ring-salmon bg-[#fffaf9]' : 'hover:bg-[#fafafa]'}">
-      <div class="mb-4 flex items-center justify-between">
-        <span class="inline-flex items-center gap-1.5 rounded-[14px] ${p.bg} px-3 py-1 text-[15px] font-medium ${p.text}">
+      <div class="mb-5 flex items-center justify-between">
+        <span class="inline-flex items-center gap-2 rounded-[18px] ${p.bg} px-4 py-1.5 text-[20px] font-medium ${p.text}">
           우선순위 <span>${esc(item.priority?.rank ?? '-')}</span>
         </span>
-        <span class="text-[15px] text-muted">${esc(item.createdAt || '')}</span>
+        <span class="text-[20px] text-muted">${esc(item.createdAt || '')}</span>
       </div>
-      <div class="mb-1 text-[21px] font-semibold">${title}</div>
-      <p class="mb-4 line-clamp-1 text-[15px] text-ink/70">${esc(item.change?.reason || '')}</p>
-      <span class="inline-flex items-center gap-2 rounded-[14px] bg-canvas px-3 py-1 text-[15px] font-medium">
+      <div class="mb-1.5 text-[28px] font-semibold">${title}</div>
+      <p class="mb-5 line-clamp-1 text-[22px] text-ink/70">${esc(item.change?.reason || '')}</p>
+      <span class="inline-flex items-center gap-2 rounded-[18px] bg-canvas px-4 py-1.5 text-[20px] font-medium">
         AGENT <span>${esc(item.agentId || '-')}</span>
       </span>
     </button>`;
@@ -168,19 +168,19 @@ function renderTechCard(t) {
   const title = esc(t.complaintType || '기술 문제');
   return `
     <button data-kind="TECH" data-id="${esc(t.reportId)}"
-      class="card-item w-full rounded-[20px] bg-white p-5 text-left shadow-card transition
+      class="card-item w-full rounded-[20px] bg-white p-6 text-left shadow-card transition
              ${active ? 'ring-2 ring-[#25a0e2] bg-[#f7fbff]' : 'hover:bg-[#fafafa]'}">
-      <div class="mb-4 flex items-center justify-between">
-        <span class="inline-flex items-center rounded-[14px] bg-[#eaf8ff] px-3 py-1 text-[15px] font-medium text-[#25a0e2]">기술 문제</span>
-        <span class="text-[15px] text-muted">${esc(t.createdAt || '')}</span>
+      <div class="mb-5 flex items-center justify-between">
+        <span class="inline-flex items-center rounded-[18px] bg-[#eaf8ff] px-4 py-1.5 text-[20px] font-medium text-[#25a0e2]">기술 문제</span>
+        <span class="text-[20px] text-muted">${esc(t.createdAt || '')}</span>
       </div>
-      <div class="mb-1 text-[21px] font-semibold">${title}</div>
-      <p class="mb-4 line-clamp-1 text-[15px] text-ink/70">${esc(t.issueRequest || t.classificationReason || '')}</p>
+      <div class="mb-1.5 text-[28px] font-semibold">${title}</div>
+      <p class="mb-5 line-clamp-1 text-[22px] text-ink/70">${esc(t.issueRequest || t.classificationReason || '')}</p>
       <div class="flex items-center gap-2">
-        <span class="inline-flex items-center gap-2 rounded-[14px] bg-canvas px-3 py-1 text-[15px] font-medium">
+        <span class="inline-flex items-center gap-2 rounded-[18px] bg-canvas px-4 py-1.5 text-[20px] font-medium">
           AGENT <span>${esc(t.agentName || '-')}</span>
         </span>
-        ${t.risk?.level ? `<span class="inline-flex items-center rounded-[14px] ${r.bg} px-3 py-1 text-[14px] font-medium ${r.text}">위험도 ${esc(t.risk.level)}</span>` : ''}
+        ${t.risk?.level ? `<span class="inline-flex items-center rounded-[18px] ${r.bg} px-4 py-1.5 text-[19px] font-medium ${r.text}">위험도 ${esc(t.risk.level)}</span>` : ''}
       </div>
     </button>`;
 }

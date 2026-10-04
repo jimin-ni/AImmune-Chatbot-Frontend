@@ -7,7 +7,6 @@
 
   <!-- Tailwind CSS (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 폰트: Inter(본문) + Sour Gummy(A-IMMUNE 로고) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sour+Gummy&display=swap" rel="stylesheet" />
@@ -16,124 +15,134 @@
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: {
-            inter: ['Inter', 'sans-serif'],
-            gummy: ['"Sour Gummy"', 'cursive'],
-          },
+          fontFamily: { inter: ['Inter', 'sans-serif'], gummy: ['"Sour Gummy"', 'cursive'] },
           colors: {
-            ink: '#363636',       // 기본 텍스트
-            muted: '#c4c4c4',     // 보조 텍스트(날짜 등)
-            canvas: '#f4f4f4',    // 페이지 배경
-            brand: '#f0322e',     // KT 레드 (승인 버튼 / 후보 지침 헤더)
-            salmon: '#f06548',    // 우선순위1 / 수정 제안 강조
+            ink: '#363636', muted: '#c4c4c4', canvas: '#f4f4f4',
+            brand: '#f0322e', salmon: '#f06548',
           },
-          boxShadow: {
-            card: '0px 0px 14px 5px #3636360d',
-          },
+          boxShadow: { card: '0px 0px 14px 5px #3636360d' },
         },
       },
     };
   </script>
 
   <style>
-    body { font-family: 'Inter', 'Apple SD Gothic Neo', sans-serif; }
-    /* 목록 → 상세 전환 애니메이션 */
-    #listCol { transition: max-width .35s ease, flex-basis .35s ease; }
-    /* 상세가 닫혔을 때: 목록을 가운데 정렬 */
-    .layout:not(.detail-open) #listCol { max-width: 520px; margin-left: auto; margin-right: auto; }
+    html, body { margin: 0; background: #e9e9e9; }
+    body { font-family: 'Inter', 'Apple SD Gothic Neo', sans-serif;
+           display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
+
+    /* ===== 2560 x 1600 고정 디자인 캔버스 (화면 크기에 맞춰 축소) ===== */
+    #viewport { position: relative; }
+    #stage {
+      position: absolute; top: 0; left: 0;
+      width: 2560px; height: 1600px; background: #f4f4f4;
+      transform-origin: top left; overflow: hidden;
+    }
+
+    /* 목록 → 상세 전환 */
+    #listCol { transition: max-width .35s ease; }
+    .layout:not(.detail-open) #listCol { max-width: 453px; margin-left: auto; margin-right: auto; }
     .layout:not(.detail-open) #detailCol { display: none; }
-    /* 상세가 열렸을 때: 목록을 왼쪽 고정폭으로 */
-    .layout.detail-open #listCol { max-width: 380px; }
-    /* 스크롤바 살짝 정리 */
+    .layout.detail-open #listCol { max-width: 453px; }
+
     .scroll-y { overflow-y: auto; scrollbar-width: thin; }
     .scroll-y::-webkit-scrollbar { width: 8px; }
     .scroll-y::-webkit-scrollbar-thumb { background: #e2e2e2; border-radius: 8px; }
   </style>
 </head>
 
-<body class="bg-canvas text-ink">
+<body class="text-ink">
+<div id="viewport">
+<div id="stage">
 
-  <!-- ============ 좌측 아이콘 네비게이션 ============ -->
-  <nav class="fixed top-0 left-0 z-20 flex h-screen w-[92px] flex-col items-center gap-8 pt-[210px]">
-    <button id="btnHome" class="grid h-11 w-11 place-items-center rounded-xl text-ink/80 hover:bg-white" title="대시보드">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+  <!-- ============ NavIcon (좌측 아이콘 레일) · x=39 y=264 ============ -->
+  <nav class="absolute left-[39px] top-[264px] flex w-[70px] flex-col gap-[25px]">
+    <button id="btnHome" class="grid h-[70px] w-[70px] place-items-center rounded-2xl text-ink/80 hover:bg-white" title="진행 대기 목록">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
     </button>
-    <button id="btnHistory" class="grid h-11 w-11 place-items-center rounded-xl text-ink/60 hover:bg-white" title="지침 문서">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>
+    <button id="btnHistory" class="grid h-[70px] w-[70px] place-items-center rounded-2xl text-ink/50 hover:bg-white" title="민원 처리 내역">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>
     </button>
-    <button class="grid h-11 w-11 place-items-center rounded-xl text-ink/60 hover:bg-white" title="설정">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 12a7.4 7.4 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7.3 7.3 0 0 0-2-1.2l-.4-2.6H8.5l-.4 2.6a7.3 7.3 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7.4 7.4 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7.3 7.3 0 0 0 2 1.2l.4 2.6h4l.4-2.6a7.3 7.3 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.06-.4.1-.8.1-1.2z"/></svg>
+    <button class="grid h-[70px] w-[70px] place-items-center rounded-2xl text-ink/50 hover:bg-white" title="설정">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 12a7.4 7.4 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7.3 7.3 0 0 0-2-1.2l-.4-2.6H8.5l-.4 2.6a7.3 7.3 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7.4 7.4 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7.3 7.3 0 0 0 2 1.2l.4 2.6h4l.4-2.6a7.3 7.3 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.06-.4.1-.8.1-1.2z"/></svg>
     </button>
   </nav>
 
-  <!-- ============ 상단 헤더 ============ -->
-  <header class="fixed top-0 left-[147px] right-0 z-10 flex h-[100px]">
-    <!-- 로고 박스 -->
-    <div class="flex h-[100px] w-[300px] items-center justify-center rounded-b-[20px] bg-white shadow-card">
-            <div class="flex items-center">
-        <img src="Logo/Ktmns.png" alt="kt m&s" class="h-6 object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/110x32?text=kt+m%26s';" />
-      </div>
-          </div>
-    <!-- 타이틀 박스 -->
-    <div class="ml-[6px] flex h-[100px] flex-1 items-center gap-4 rounded-b-[20px] bg-white pl-10 shadow-card">
-      <span class="font-gummy text-[34px] leading-none text-ink">A-IMMUNE</span>
-      <span class="text-[20px] font-semibold text-ink">관리자 대시보드</span>
-    </div>
+  <!-- ============ NaveTitle (상단 헤더) · x=639 y=0 1921x121 ============ -->
+  <header class="absolute left-[639px] top-0 flex h-[121px] w-[1921px] items-center rounded-b-[20px] bg-white shadow-card">
+    <!-- 뮤니(헤더) · 평소 idle, 승인/반려/확인 시 전환 -->
+    <img id="muni" src="img/muni-idle.gif" alt="뮤니" class="absolute left-[41px] top-[18px] h-[89px] object-contain" onerror="this.style.display='none'"/>
+    <span class="absolute left-[141px] top-[40px] text-[32px] font-bold leading-none text-ink">A Immune</span>
+    <span class="absolute left-[334px] top-[44px] text-[28px] font-semibold leading-none text-ink">관리자 대시보드</span>
   </header>
 
-  <!-- ============ 좌측 프로필 사이드바 ============ -->
-  <aside class="fixed top-0 left-[147px] z-0 flex h-screen w-[300px] flex-col pt-[130px]">
-    <!-- 프로필 -->
-    <div class="flex items-center gap-4 px-2 pb-6">
-      <div class="grid h-[68px] w-[68px] place-items-center rounded-full bg-canvas">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="#c4c4c4"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6z"/></svg>
-      </div>
-      <div>
-        <div class="flex items-end gap-2">
-          <span class="text-[22px] font-medium text-ink" id="mgrName">김지민</span>
-          <span class="text-[22px] text-ink" id="mgrRank">차장</span>
-        </div>
-        <div class="text-[15px] text-muted">KT m&s</div>
-      </div>
+  <!-- ============ NavProfile (좌측 프로필 컬럼) · x=147 w=492 ============ -->
+  <!-- 로고 박스 -->
+  <div class="absolute left-[147px] top-0 flex h-[121px] w-[492px] items-center justify-center rounded-b-[20px] bg-white shadow-card">
+    <img src="Logo/Ktmns.png" alt="kt m&s" class="h-[44px] object-contain"
+         onerror="this.outerHTML='<span class=&quot;text-[34px] font-extrabold&quot;><span style=&quot;color:#f0322e&quot;>kt</span> m&amp;s</span>'"/>
+  </div>
+  <!-- 프로필 카드 -->
+  <div class="absolute left-[147px] top-[121px] flex h-[145px] w-[492px] items-center gap-7 rounded-b-[20px] bg-white px-[71px] shadow-card">
+    <div class="grid h-[120px] w-[120px] shrink-0 place-items-center rounded-full bg-canvas">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="#c4c4c4"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6z"/></svg>
     </div>
-
-    <!-- 관리자 아이디 -->
-    <div class="mx-1 flex items-center gap-3 rounded-[16px] bg-canvas px-3 py-3.5">
-      <div class="grid h-11 w-11 place-items-center rounded-[10px] bg-white shadow-card">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="#363636"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6z"/></svg>
+    <div>
+      <div class="flex items-end gap-3">
+        <span class="text-[34px] font-medium text-ink" id="mgrName">김지민</span>
+        <span class="text-[34px] text-ink" id="mgrRank">차장</span>
       </div>
-      <span class="text-[16px] font-medium">관리자 아이디</span>
-      <span class="ml-auto pr-2 text-[16px]" id="mgrId">M-001</span>
+      <div class="mt-1 text-[24px] text-muted">KT m&s</div>
     </div>
-
-    <!-- 뮤니 캐릭터 (평소 idle, 승인/반려/확인 시 애니메이션 전환) -->
-    <div class="mt-auto flex flex-col items-center pb-[500px]">
-      <img id="muni" src="img/muni-idle.gif" alt="뮤니" class="w-[150px] object-contain"
-           onerror="this.style.display='none'"/>
+  </div>
+  <!-- 큰 패널 + 관리자 아이디 박스 -->
+  <div class="absolute left-[147px] top-[266px] h-[1334px] w-[492px] rounded-t-[20px] bg-white shadow-card">
+    <div class="absolute left-[24px] top-[36px] flex h-[96px] w-[442px] items-center gap-5 rounded-[16px] bg-canvas px-4">
+      <div class="grid h-[70px] w-[70px] place-items-center rounded-[12px] bg-white shadow-card">
+        <svg width="42" height="42" viewBox="0 0 24 24" fill="#363636"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6z"/></svg>
+      </div>
+      <span class="text-[27px] font-medium">관리자 아이디</span>
+      <span class="ml-auto pr-3 text-[27px]" id="mgrId">M-001</span>
     </div>
-  </aside>
-
-  <!-- ============ 메인 컨텐츠 ============ -->
-  <div class="layout ml-[447px] flex min-h-screen gap-8 px-8 pt-[130px] pb-10" id="layout">
-
-    <!-- 진행 대기 목록 -->
-    <section id="listCol" class="w-full shrink-0">
-      <h2 class="mb-6 text-center text-[30px] font-semibold">진행 대기 목록</h2>
-      <div id="listWrap" class="scroll-y flex max-h-[calc(100vh-220px)] flex-col gap-5 pr-1">
-        <!-- JS가 카드 삽입 -->
-        <div id="listLoading" class="py-16 text-center text-muted">불러오는 중…</div>
-      </div>
-    </section>
-
-    <!-- 지침서 개정 승인 (상세) -->
-    <section id="detailCol" class="flex-1">
-      <h2 class="mb-6 text-center text-[30px] font-semibold">지침서 개정 승인</h2>
-      <div id="detailWrap" class="relative rounded-[20px] bg-white p-8 shadow-card">
-        <!-- JS가 상세 삽입 -->
-      </div>
-    </section>
   </div>
 
+  <!-- ============ 메인 컨텐츠 (헤더 아래, 우측 영역) · x=639 y=121 1921x1479 ============ -->
+  <div class="absolute left-[639px] top-[121px] h-[1479px] w-[1921px]">
+    <div class="layout flex h-full gap-10 px-10 pt-[80px] pb-10" id="layout">
+
+      <!-- 진행 대기 목록 -->
+      <section id="listCol" class="w-full shrink-0">
+        <h2 class="mb-7 text-center text-[38px] font-semibold">진행 대기 목록</h2>
+        <div id="listWrap" class="scroll-y flex max-h-[1230px] flex-col gap-[18px] pr-2">
+          <div id="listLoading" class="py-20 text-center text-[22px] text-muted">불러오는 중…</div>
+        </div>
+      </section>
+
+      <!-- 지침서 개정 승인 (상세) -->
+      <section id="detailCol" class="flex-1">
+        <h2 class="mb-7 text-center text-[38px] font-semibold">지침서 개정 승인</h2>
+        <div id="detailWrap" class="scroll-y relative max-h-[1250px] rounded-[20px] bg-white p-10 shadow-card"></div>
+      </section>
+    </div>
+  </div>
+
+</div><!-- /stage -->
+</div><!-- /viewport -->
+
+  <script>
+    // 2560x1600 캔버스를 화면 크기에 맞춰 스케일
+    (function () {
+      const stage = document.getElementById('stage');
+      const vp = document.getElementById('viewport');
+      function fit() {
+        const s = Math.min(window.innerWidth / 2560, window.innerHeight / 1600);
+        stage.style.transform = 'scale(' + s + ')';
+        vp.style.width = (2560 * s) + 'px';
+        vp.style.height = (1600 * s) + 'px';
+      }
+      window.addEventListener('resize', fit); fit();
+    })();
+  </script>
   <script src="js/muni.js"></script>
   <script src="js/dashboard.js"></script>
 </body>
