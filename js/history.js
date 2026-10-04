@@ -12,6 +12,7 @@ const CONFIG = {
   HISTORY_PATH: '/webhook/a-immune-admin-history', // 처리 내역 조회
   MANAGER_ID: 'M-001',
   USE_SAMPLE_ON_FAIL: true, // 엔드포인트 생성 전엔 샘플로 화면 확인. 연결 후 false 권장
+  TIME_OFFSET_HOURS: -6,    // 서버/DB 시각 → 표시 시각 보정 (요청: -6시간)
 };
 
 /* ---------------------------------------------------------------------------
@@ -26,6 +27,19 @@ function esc(v) {
   return String(v ?? '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/* 서버/DB 시각 보정: "YYYY-MM-DD HH:MM(:SS)" 또는 ISO 문자열을 받아 시간을 더함(음수면 뺌).
+ * UTC 기준 산술로 로컬 타임존 간섭을 배제하고, 입력과 같은 포맷으로 되돌린다. */
+function shiftTime(s, hours) {
+  if (!s || !hours) return s || '';
+  const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
+  if (!m) return s;
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0)));
+  d.setUTCHours(d.getUTCHours() + hours);
+  const p = (n) => String(n).padStart(2, '0');
+  const base = `${d.getUTCFullYear()}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`;
+  return m[6] ? `${base}:${p(d.getUTCSeconds())}` : base;
 }
 
 /* 긴급도(위험도) 뱃지 색상 — Figma: CRITICAL/HIGH 살구, MEDIUM 노랑, LOW 파랑 */
@@ -59,7 +73,7 @@ function normalizeItem(raw) {
     duplicateCount: Number(raw.duplicateCount ?? raw.evidenceCount ?? raw.evidence?.count ?? 0),
     decision, // 'APPROVE' | 'REJECT'
     rejectionReason: raw.rejectionReason || raw.rejectReason || raw.reject_reason || '',
-    decidedAt: raw.decidedAt || raw.createdAt || raw.decided_at || '',
+    decidedAt: shiftTime(raw.decidedAt || raw.createdAt || raw.decided_at || '', CONFIG.TIME_OFFSET_HOURS),
     managerId: raw.managerId || raw.manager?.id || raw.decisionMakerId || '',
   };
 }
@@ -148,8 +162,8 @@ function renderSection(title, list, emptyText) {
     : `<div class="col-span-4 py-10 text-[22px] text-muted">${emptyText}</div>`;
   return `
     <section class="mb-[60px]">
-      <h3 class="mb-[30px] text-[34px] font-semibold leading-none">
-        ${title} <span class="text-muted">${list.length}개</span>
+      <h3 class="mb-[30px] text-[34px] font-semibold leading-none text-muted">
+        ${title} <span>${list.length}개</span>
       </h3>
       <div class="grid grid-cols-4 gap-[18px]">
         ${cards}
