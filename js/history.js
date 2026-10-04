@@ -1,7 +1,7 @@
 /* =========================================================================
- * A-IMMUNE 민원 처리 내역 (조회 전용)
- * - M-001 관리자가 처리 완료된 민원 항목을 카드로 조회
- * - 카드 표시: 요약글 / 에이전트 / 긴급도 / 중복횟수 / 승인·반려 / 반려사유
+ * A-IMMUNE 민원 처리 내역 (조회 전용) · Figma 120:1819 "관리자 대시보드 - 민원처리 내역"
+ * - M-001 관리자가 처리 완료된 민원 항목을 조회
+ * - 승인 처리 항목 / 반려 처리 항목 두 섹션으로 구분, 4열 카드 그리드
  * ========================================================================= */
 
 /* ---------------------------------------------------------------------------
@@ -9,7 +9,7 @@
  * ------------------------------------------------------------------------- */
 const CONFIG = {
   N8N_BASE_URL: 'https://blitzrattle.app.n8n.cloud',
-  HISTORY_PATH: '/webhook/a-immune-admin-history', // 처리 내역 조회 (아직 n8n에 없으면 샘플 표시)
+  HISTORY_PATH: '/webhook/a-immune-admin-history', // 처리 내역 조회
   MANAGER_ID: 'M-001',
   USE_SAMPLE_ON_FAIL: true, // 엔드포인트 생성 전엔 샘플로 화면 확인. 연결 후 false 권장
 };
@@ -17,10 +17,7 @@ const CONFIG = {
 /* ---------------------------------------------------------------------------
  * 1. 전역 상태
  * ------------------------------------------------------------------------- */
-const state = {
-  items: [],       // 전체 내역
-  filter: 'ALL',   // ALL | APPROVE | REJECT
-};
+const state = { items: [] };
 
 /* ---------------------------------------------------------------------------
  * 2. 유틸
@@ -31,18 +28,18 @@ function esc(v) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-/* 긴급도(위험도) 뱃지 색상 */
+/* 긴급도(위험도) 뱃지 색상 — Figma: CRITICAL/HIGH 살구, MEDIUM 노랑, LOW 파랑 */
 function riskStyle(level) {
   const map = {
-    CRITICAL: { text: 'text-[#f0322e]', bg: 'bg-[#ffe6e1]' },
-    HIGH:     { text: 'text-[#f06548]', bg: 'bg-[#ffe6e1]' },
-    MEDIUM:   { text: 'text-[#ffbc0a]', bg: 'bg-[#fff7e2]' },
-    LOW:      { text: 'text-[#25a0e2]', bg: 'bg-[#eaf8ff]' },
+    CRITICAL: { text: '#f0322e', bg: '#ffe7e2' },
+    HIGH:     { text: '#f06548', bg: '#ffe7e2' },
+    MEDIUM:   { text: '#f5a623', bg: '#fff4de' },
+    LOW:      { text: '#25a0e2', bg: '#ebf8ff' },
   };
-  return map[String(level || '').toUpperCase()] || { text: 'text-ink/60', bg: 'bg-canvas' };
+  return map[String(level || '').toUpperCase()] || { text: '#808080', bg: '#f4f4f4' };
 }
 
-/* 승인/반려 값 정규화 (APPROVE/승인 → APPROVE) */
+/* 승인/반려 값 정규화 */
 function normDecision(d) {
   const s = String(d || '').toUpperCase();
   if (s === 'APPROVE' || s === '승인' || s === 'APPROVED') return 'APPROVE';
@@ -59,9 +56,7 @@ function normalizeItem(raw) {
              || `${raw.guideline?.itemId || ''} ${raw.guideline?.title || ''}`.trim() || '요약 없음',
     agent: raw.agentId || raw.agentName || raw.agent || '-',
     riskLevel: raw.risk?.level || raw.riskLevel || null,
-    duplicateCount: Number(
-      raw.duplicateCount ?? raw.evidenceCount ?? raw.evidence?.count ?? 0
-    ),
+    duplicateCount: Number(raw.duplicateCount ?? raw.evidenceCount ?? raw.evidence?.count ?? 0),
     decision, // 'APPROVE' | 'REJECT'
     rejectionReason: raw.rejectionReason || raw.rejectReason || raw.reject_reason || '',
     decidedAt: raw.decidedAt || raw.createdAt || raw.decided_at || '',
@@ -90,160 +85,128 @@ async function fetchHistory() {
 }
 
 /* ---------------------------------------------------------------------------
- * 4. 필터 바
+ * 4. 카드 렌더 (Figma 민원처리내역_승인 / _반려)
  * ------------------------------------------------------------------------- */
-function renderFilter() {
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    const active = btn.dataset.filter === state.filter;
-    btn.className = 'filter-btn rounded-[14px] px-7 py-2.5 text-[22px] font-medium transition '
-      + (active ? 'bg-ink text-white' : 'text-ink/60 hover:bg-canvas');
-  });
+function metaPill(label, value) {
+  return `
+    <span class="flex h-[36px] min-w-[141px] w-fit items-center gap-[6px] whitespace-nowrap rounded-[20px] bg-canvas px-[12px] text-[20px] font-medium text-ink">
+      ${label} <span>${esc(value)}</span>
+    </span>`;
 }
 
-function bindFilter() {
-  document.getElementById('filterBar').addEventListener('click', (e) => {
-    const btn = e.target.closest('.filter-btn');
-    if (!btn) return;
-    state.filter = btn.dataset.filter;
-    renderFilter();
-    renderCards();
-  });
-}
-
-/* ---------------------------------------------------------------------------
- * 5. 카드 렌더
- * ------------------------------------------------------------------------- */
-function filteredItems() {
-  if (state.filter === 'ALL') return state.items;
-  return state.items.filter(i => i.decision === state.filter);
-}
-
-function statusBadge(decision) {
-  if (decision === 'APPROVE') {
-    return `<span class="inline-flex items-center gap-1.5 rounded-[16px] bg-[#e7f7ef] px-4 py-1.5 text-[21px] font-semibold text-approve">● 승인</span>`;
-  }
-  if (decision === 'REJECT') {
-    return `<span class="inline-flex items-center gap-1.5 rounded-[16px] bg-[#ffe6e1] px-4 py-1.5 text-[21px] font-semibold text-brand">● 반려</span>`;
-  }
-  return `<span class="inline-flex items-center rounded-[16px] bg-canvas px-4 py-1.5 text-[21px] font-medium text-ink/60">처리</span>`;
+function riskPill(level) {
+  if (!level) return '';
+  const r = riskStyle(level);
+  return `
+    <span class="flex w-fit items-center gap-[6px] whitespace-nowrap rounded-[20px] px-[12px] py-[6px] text-[20px] font-medium"
+          style="background:${r.bg};color:${r.text}">
+      긴급도 <span>${esc(String(level).toUpperCase())}</span>
+    </span>`;
 }
 
 function renderCard(item) {
-  const r = riskStyle(item.riskLevel);
   const isReject = item.decision === 'REJECT';
+  const badge = isReject
+    ? `<span class="rounded-[20px] bg-ink px-[12px] py-[6px] text-[22px] font-bold leading-none text-white">반려</span>`
+    : `<span class="rounded-[20px] bg-approve px-[12px] py-[6px] text-[22px] font-bold leading-none text-white">승인</span>`;
+
+  const rejectBox = isReject ? `
+      <div class="flex h-[64px] w-full items-center rounded-[20px] bg-canvas px-[24px]">
+        <p class="text-[17px] font-semibold leading-snug text-[#e10412]">${esc(item.rejectionReason || '사유 미기재')}</p>
+      </div>` : '';
+
   return `
-    <article class="flex flex-col rounded-[20px] bg-white p-8 shadow-card">
-      <!-- 상단: 긴급도 + 승인/반려 -->
-      <div class="mb-5 flex items-center justify-between">
-        ${item.riskLevel
-          ? `<span class="inline-flex items-center rounded-[16px] ${r.bg} px-4 py-1.5 text-[20px] font-medium ${r.text}">긴급도 ${esc(item.riskLevel)}</span>`
-          : `<span></span>`}
-        ${statusBadge(item.decision)}
+    <article class="flex w-full flex-col gap-[30px] rounded-[20px] bg-white p-[20px] shadow-card">
+      <!-- 상단: 상태 뱃지 + 처리일 -->
+      <div class="flex h-[39px] w-full items-center justify-between">
+        ${badge}
+        <span class="text-[20px] font-medium text-[#c4c4c4]">${esc(item.decidedAt || '')}</span>
       </div>
 
       <!-- 요약글 -->
-      <h3 class="mb-5 line-clamp-2 text-[28px] font-semibold leading-snug">${esc(item.summary)}</h3>
+      <h3 class="line-clamp-2 min-h-[72px] text-[28px] font-semibold leading-normal text-ink">${esc(item.summary)}</h3>
 
-      <!-- 메타: 에이전트 / 중복횟수 -->
-      <div class="mb-5 flex flex-wrap items-center gap-2.5">
-        <span class="inline-flex items-center gap-2 rounded-[16px] bg-canvas px-4 py-1.5 text-[20px] font-medium">
-          AGENT <span>${esc(item.agent)}</span>
-        </span>
-        <span class="inline-flex items-center gap-1 rounded-[16px] bg-canvas px-4 py-1.5 text-[20px] font-medium">
-          중복 <span>${esc(item.duplicateCount)}</span>건
-        </span>
-      </div>
+      ${rejectBox}
 
-      <!-- 반려 사유 (반려일 때만) -->
-      ${isReject ? `
-        <div class="mb-5 rounded-[16px] bg-[#fff6f4] p-5">
-          <div class="mb-1.5 text-[18px] font-semibold text-brand">반려 사유</div>
-          <p class="text-[21px] leading-relaxed text-ink/80">${esc(item.rejectionReason || '사유 미기재')}</p>
-        </div>` : ''}
-
-      <!-- 하단: 처리일 / 담당자 -->
-      <div class="mt-auto flex items-center justify-between pt-2 text-[18px] text-muted">
-        <span>${esc(item.decidedAt || '')}</span>
-        <span>${esc(item.managerId || '')}</span>
+      <!-- 긴급도 / AGENT / 중복 민원 -->
+      <div class="flex flex-col gap-[10px]">
+        ${riskPill(item.riskLevel)}
+        <div class="flex flex-wrap items-center gap-[10px]">
+          ${metaPill('AGENT', item.agent)}
+          ${metaPill('중복 민원', item.duplicateCount + '건')}
+        </div>
       </div>
     </article>`;
 }
 
-function renderCards() {
-  const grid = document.getElementById('cardGrid');
-  const list = filteredItems();
-  if (!list.length) {
-    grid.innerHTML = `<div class="col-span-full py-16 text-center text-muted">해당 내역이 없습니다.</div>`;
-    return;
-  }
-  grid.innerHTML = list.map(renderCard).join('');
+/* ---------------------------------------------------------------------------
+ * 5. 섹션 렌더
+ * ------------------------------------------------------------------------- */
+function renderSection(title, list, emptyText) {
+  const cards = list.length
+    ? list.map(renderCard).join('')
+    : `<div class="col-span-4 py-10 text-[22px] text-muted">${emptyText}</div>`;
+  return `
+    <section class="mb-[60px]">
+      <h3 class="mb-[30px] text-[34px] font-semibold leading-none">
+        ${title} <span class="text-muted">${list.length}개</span>
+      </h3>
+      <div class="grid grid-cols-4 gap-[18px]">
+        ${cards}
+      </div>
+    </section>`;
+}
+
+function render() {
+  const root = document.getElementById('sections');
+  const approved = state.items.filter(i => i.decision === 'APPROVE');
+  const rejected = state.items.filter(i => i.decision === 'REJECT');
+  root.innerHTML =
+    renderSection('승인 처리 항목', approved, '승인 처리된 항목이 없습니다.') +
+    renderSection('반려 처리 항목', rejected, '반려 처리된 항목이 없습니다.');
 }
 
 /* ---------------------------------------------------------------------------
  * 6. 초기화
  * ------------------------------------------------------------------------- */
 async function init() {
-  renderFilter();
-  bindFilter();
   try {
     state.items = await fetchHistory();
   } catch (e) {
     console.warn('[A-IMMUNE] 내역 조회 실패:', e.message);
     if (CONFIG.USE_SAMPLE_ON_FAIL) {
-      state.items = SAMPLE_HISTORY.map(normalizeItem); // 샘플도 동일 정규화
+      state.items = SAMPLE_HISTORY.map(normalizeItem);
     } else {
-      document.getElementById('cardGrid').innerHTML =
-        `<div class="col-span-full rounded-2xl bg-white p-6 text-center text-salmon shadow-card">
+      document.getElementById('sections').innerHTML =
+        `<div class="rounded-[20px] bg-white p-6 text-center text-salmon shadow-card">
            내역을 불러오지 못했습니다: ${esc(e.message)}
          </div>`;
       return;
     }
   }
-  renderCards();
+  render();
 }
 
 /* ---------------------------------------------------------------------------
  * 7. 샘플 데이터 (n8n 엔드포인트 생성 전 화면 확인용)
  * ------------------------------------------------------------------------- */
 const SAMPLE_HISTORY = [
-  {
-    revisionId: 'REV-1759300000-0012',
-    summary: '고객 조건과 일치하는 상품이 없을 때 대체 상품을 제안하도록 기준 보완',
-    agentId: 'JOY', risk: { level: 'CRITICAL' }, evidenceCount: 3,
-    decision: 'APPROVE', decidedAt: '2026-10-01 14:40:39', managerId: 'M-001',
-  },
-  {
-    revisionId: 'REV-1759300000-0031',
-    summary: '요금제 안내 시 확인되지 않은 요금제를 임의 생성하지 않도록 명시',
-    agentId: 'JOY', risk: { level: 'HIGH' }, evidenceCount: 2,
-    decision: 'APPROVE', decidedAt: '2026-10-01 13:22:10', managerId: 'M-001',
-  },
-  {
-    revisionId: 'REV-1759300000-0048',
-    summary: '경쟁사 비교 안내 범위를 과도하게 확장한 개정안',
-    agentId: 'SAM', risk: { level: 'MEDIUM' }, evidenceCount: 1,
-    decision: 'REJECT', rejectionReason: '경쟁사 직접 비교는 내부 정책상 불가. 자사 혜택 중심 안내로 재작성 필요.',
-    decidedAt: '2026-10-01 11:05:47', managerId: 'M-001',
-  },
-  {
-    revisionId: 'REV-1759300000-0055',
-    summary: '할인·결합 혜택 안내 문구에 조건 누락 보완',
-    agentId: '흥부장', risk: { level: 'LOW' }, evidenceCount: 1,
-    decision: 'APPROVE', decidedAt: '2026-09-30 17:51:02', managerId: 'M-001',
-  },
-  {
-    revisionId: 'REV-1759300000-0061',
-    summary: '개인정보 수집 동의 안내를 생략하는 방향의 개정안',
-    agentId: 'JOY', risk: { level: 'CRITICAL' }, evidenceCount: 4,
-    decision: 'REJECT', rejectionReason: '개인정보 보호 지침 위반 소지. 동의 안내는 반드시 유지해야 함.',
-    decidedAt: '2026-09-30 16:14:33', managerId: 'M-001',
-  },
-  {
-    revisionId: 'REV-1759300000-0072',
-    summary: '응답 지연 시 안내 멘트 표준화',
-    agentId: 'SAM', risk: { level: 'LOW' }, evidenceCount: 2,
-    decision: 'APPROVE', decidedAt: '2026-09-30 10:02:19', managerId: 'M-001',
-  },
+  { revisionId: 'REV-0012', summary: '할인 결합 혜택 안내 문구의 조건 누락 보완', agentId: 'JOY',
+    risk: { level: 'CRITICAL' }, evidenceCount: 3, decision: 'APPROVE', decidedAt: '2026-09-29 13:05', managerId: 'M-001' },
+  { revisionId: 'REV-0031', summary: '요금제 안내 시 확인되지 않은 요금제를 임의 생성하지 않도록 명시', agentId: 'JOY',
+    risk: { level: 'HIGH' }, evidenceCount: 2, decision: 'APPROVE', decidedAt: '2026-09-29 11:22', managerId: 'M-001' },
+  { revisionId: 'REV-0055', summary: '할인·결합 혜택 안내 문구에 조건 누락 보완', agentId: '흥부장',
+    risk: { level: 'LOW' }, evidenceCount: 1, decision: 'APPROVE', decidedAt: '2026-09-28 17:51', managerId: 'M-001' },
+  { revisionId: 'REV-0072', summary: '응답 지연 시 안내 멘트 표준화', agentId: 'SAM',
+    risk: { level: 'LOW' }, evidenceCount: 2, decision: 'APPROVE', decidedAt: '2026-09-28 10:02', managerId: 'M-001' },
+  { revisionId: 'REV-0090', summary: '고객 조건과 일치하는 상품이 없을 때 대체 상품을 제안하도록 기준 보완', agentId: 'JOY',
+    risk: { level: 'MEDIUM' }, evidenceCount: 2, decision: 'APPROVE', decidedAt: '2026-09-27 15:40', managerId: 'M-001' },
+  { revisionId: 'REV-0048', summary: '할인 결합 혜택 안내 문구의 조건 누락 보완', agentId: 'JOY',
+    risk: { level: 'LOW' }, evidenceCount: 3, decision: 'REJECT',
+    rejectionReason: '개인정보 보호 지침 위반 소지', decidedAt: '2026-09-29 13:05', managerId: 'M-001' },
+  { revisionId: 'REV-0061', summary: '경쟁사 비교 안내 범위를 과도하게 확장한 개정안', agentId: 'SAM',
+    risk: { level: 'MEDIUM' }, evidenceCount: 1, decision: 'REJECT',
+    rejectionReason: '경쟁사 직접 비교는 내부 정책상 불가. 자사 혜택 중심 안내로 재작성 필요.', decidedAt: '2026-09-28 16:14', managerId: 'M-001' },
 ];
 
 if (document.readyState === 'loading') {
@@ -252,10 +215,12 @@ if (document.readyState === 'loading') {
   init();
 }
 
+/* ---------------------------------------------------------------------------
+ * 8. NavBar 네비게이션 (두 화면 공통)
+ * ------------------------------------------------------------------------- */
 document.getElementById('btnHistory')?.addEventListener('click', () => {
   window.location.href = '/history.html';
 });
-
 document.getElementById('btnHome')?.addEventListener('click', () => {
   window.location.href = '/dashboard.html';
 });

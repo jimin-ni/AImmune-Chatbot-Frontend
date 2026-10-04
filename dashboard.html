@@ -55,16 +55,19 @@
 <div id="viewport">
 <div id="stage">
 
-  <!-- ============ NavIcon (좌측 아이콘 레일) · x=39 y=264 ============ -->
+  <!-- ============ NavIcon (좌측 아이콘 레일) · x=39 y=264 · 두 화면 공통 ============ -->
   <nav class="absolute left-[39px] top-[264px] flex w-[70px] flex-col gap-[25px]">
-    <button id="btnHome" class="grid h-[70px] w-[70px] place-items-center rounded-2xl text-ink/80 hover:bg-white" title="진행 대기 목록">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    <!-- 홈(진행 대기 목록): 이 페이지에서 활성 -->
+    <button id="btnHome" class="block h-[70px] w-[70px]" title="진행 대기 목록">
+      <img src="Button/Primary/Medium/Active/Home.png" alt="진행 대기 목록" class="h-[70px] w-[70px] object-contain" />
     </button>
-    <button id="btnHistory" class="grid h-[70px] w-[70px] place-items-center rounded-2xl text-ink/50 hover:bg-white" title="민원 처리 내역">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>
+    <!-- 지침서(민원 처리 내역): 비활성 -->
+    <button id="btnHistory" class="block h-[70px] w-[70px]" title="민원 처리 내역">
+      <img src="Button/Primary/Medium/Default/CheckedCard.png" alt="민원 처리 내역" class="h-[70px] w-[70px] object-contain" />
     </button>
-    <button class="grid h-[70px] w-[70px] place-items-center rounded-2xl text-ink/50 hover:bg-white" title="설정">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 12a7.4 7.4 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7.3 7.3 0 0 0-2-1.2l-.4-2.6H8.5l-.4 2.6a7.3 7.3 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7.4 7.4 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7.3 7.3 0 0 0 2 1.2l.4 2.6h4l.4-2.6a7.3 7.3 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.06-.4.1-.8.1-1.2z"/></svg>
+    <!-- 설정 -->
+    <button id="btnSettings" class="block h-[70px] w-[70px]" title="설정">
+      <img src="Button/Primary/Medium/Default/Setting.png" alt="설정" class="h-[70px] w-[70px] object-contain" />
     </button>
   </nav>
 
@@ -84,9 +87,7 @@
   </div>
   <!-- 프로필 카드 -->
   <div class="absolute left-[147px] top-[121px] flex h-[145px] w-[492px] items-center gap-7 rounded-b-[20px] bg-white px-[71px] shadow-card">
-    <div class="grid h-[120px] w-[120px] shrink-0 place-items-center rounded-full bg-canvas">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="#c4c4c4"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6z"/></svg>
-    </div>
+    <img src="Button/Primary/Medium/Default/Profile.png" alt="프로필" class="h-[120px] w-[120px] shrink-0 object-contain" />
     <div>
       <div class="flex items-end gap-3">
         <span class="text-[34px] font-medium text-ink" id="mgrName">김지민</span>
@@ -98,8 +99,8 @@
   <!-- 큰 패널 + 관리자 아이디 박스 -->
   <div class="absolute left-[147px] top-[266px] h-[1334px] w-[492px] rounded-t-[20px] bg-white shadow-card">
     <div class="absolute left-[24px] top-[36px] flex h-[96px] w-[442px] items-center gap-5 rounded-[16px] bg-canvas px-4">
-      <div class="grid h-[70px] w-[70px] place-items-center rounded-[12px] bg-white shadow-card">
-        <svg width="42" height="42" viewBox="0 0 24 24" fill="#363636"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6z"/></svg>
+      <div class="grid h-[70px] w-[70px] shrink-0 place-items-center rounded-[12px] bg-white shadow-card">
+        <img src="Button/Primary/Medium/Default/Profile.png" alt="관리자" class="h-[48px] w-[48px] object-contain" />
       </div>
       <span class="text-[27px] font-medium">관리자 아이디</span>
       <span class="ml-auto pr-3 text-[27px]" id="mgrId">M-001</span>
