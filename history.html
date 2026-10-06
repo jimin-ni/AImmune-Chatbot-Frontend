@@ -19,7 +19,7 @@
             ink: '#363636', muted: '#c4c4c4', canvas: '#f4f4f4',
             brand: '#f0322e', salmon: '#f06548', approve: '#00bd9d',
           },
-          boxShadow: { card: '0px 0px 7px 0px #3636360d' },
+          boxShadow: { card: '0px 0px 7px 0px #3636360d', nav: '0px 0px 14px 5px #3636360d' },
         },
       },
     };
@@ -59,18 +59,27 @@
   </nav>
 
   <!-- ============ NaveTitle (헤더) · x=639 ============ -->
+<<<<<<< HEAD
   <header class="absolute left-[639px] top-0 flex h-[121px] w-[1921px] items-center bg-white shadow-card">
     <img id="muni" src="img/newMUNI_move.gif" alt="뮤니" class="absolute left-[41px] top-[18px] h-[89px] object-contain" onerror="this.style.display='none'"/>
     <span class="absolute left-[141px] top-[50px] text-[32px] font-bold leading-none text-ink">A Immune</span>
     <span class="absolute left-[334px] top-[44px] text-[28px] font-semibold leading-none text-ink">관리자 대시보드</span>
+=======
+  <header class="absolute left-[639px] top-0 flex h-[121px] w-[1921px] items-center justify-center gap-[28px] bg-white shadow-nav">
+    <!-- 뮤니(헤더): 움직이는 gif. newMUNI_move.gif가 없으면 같은 이름의 jpg로 대체 -->
+    <img src="img/newMUNI_move.gif" alt="뮤니" class="h-[89px] object-contain"
+         onerror="this.onerror=function(){this.style.display='none'}; this.src='img/newMUNI_move.jpg'"/>
+    <span class="text-[32px] font-bold leading-none text-ink">A Immune</span>
+    <span class="text-[28px] font-semibold leading-none text-ink">관리자 대시보드</span>
+>>>>>>> d4fbc655606cfb12bd40a0d2cd67c6b63b2079fb
   </header>
 
   <!-- ============ NavProfile · x=147 ============ -->
-  <div class="absolute left-[147px] top-0 flex h-[121px] w-[492px] items-center justify-center bg-white shadow-card">
+  <div class="absolute left-[147px] top-0 flex h-[121px] w-[492px] items-center justify-center bg-white shadow-nav">
     <img src="Logo/Ktmns.png" alt="kt m&s" class="h-[44px] object-contain"
          onerror="this.outerHTML='<span class=&quot;text-[34px] font-extrabold&quot;><span style=&quot;color:#f0322e&quot;>kt</span> m&amp;s</span>'"/>
   </div>
-  <div class="absolute left-[147px] top-[121px] flex h-[145px] w-[492px] items-center gap-7 bg-canvas px-[71px] shadow-card">
+  <div class="absolute left-[147px] top-[121px] flex h-[145px] w-[492px] items-center gap-7 bg-canvas px-[71px] shadow-nav">
     <img src="Button/Primary/Medium/Default/Profile.png" alt="프로필" class="h-[120px] w-[120px] shrink-0 object-contain" />
     <div>
       <div class="flex items-end gap-3">
@@ -80,7 +89,7 @@
       <div class="mt-1 text-[24px] text-muted">KT m&s</div>
     </div>
   </div>
-  <div class="absolute left-[147px] top-[266px] h-[1334px] w-[492px] bg-white shadow-card">
+  <div class="absolute left-[147px] top-[266px] h-[1334px] w-[492px] bg-white shadow-nav">
     <div class="absolute left-[24px] top-[36px] flex h-[96px] w-[442px] items-center gap-5 rounded-[16px] bg-canvas px-4">
       <img src="Button/Primary/Medium/Default/Profile.png" alt="관리자" class="h-[70px] w-[70px] shrink-0 object-contain" />
       <span class="text-[27px] font-medium">관리자 아이디</span>
@@ -115,7 +124,6 @@
       window.addEventListener('resize', fit); fit();
     })();
   </script>
-  <script src="js/muni.js"></script>
   <script src="js/history.js"></script>
 </body>
 </html>

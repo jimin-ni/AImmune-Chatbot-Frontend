@@ -230,95 +230,95 @@ function renderRevisionDetail(item) {
   box.innerHTML = `
     <div class="flex items-start justify-between">
       <div class="flex flex-wrap items-center gap-3">
-        <h3 class="text-[28px] font-semibold">${title}</h3>
-        <span class="inline-flex items-center gap-1.5 rounded-[14px] ${p.bg} px-3 py-1 text-[15px] font-medium ${p.text}">
+        <h3 class="text-[35px] font-semibold">${title}</h3>
+        <span class="inline-flex items-center gap-1.5 rounded-[14px] ${p.bg} px-3 py-1 text-[22px] font-medium ${p.text}">
           우선순위 <span>${esc(item.priority?.rank ?? '-')}</span>
         </span>
-        <span class="inline-flex items-center gap-2 rounded-[14px] bg-ink px-3 py-1 text-[15px] font-medium text-white">
+        <span class="inline-flex items-center gap-2 rounded-[14px] bg-ink px-3 py-1 text-[22px] font-medium text-white">
           AGENT <span>${esc(item.agentId || '-')}</span>
         </span>
       </div>
-      <div class="text-right text-[14px] text-muted">
+      <div class="text-right text-[21px] text-muted">
         <div>요청일: ${esc(item.createdAt || '')}</div>
         <div>사건 발생일: ${esc(item.createdAt || '')}</div>
       </div>
     </div>
-    <div class="mt-2 text-[16px] text-ink/70">
+    <div class="mt-2 text-[23px] text-ink/70">
       지침서 버전: ${curVer} → ${candVer}
       <span class="mx-2 text-muted">|</span>
       근거 신고 ${esc(item.evidence?.count ?? evidenceIds.length)}건
     </div>
 
     <section class="mt-8">
-      <h4 class="mb-3 text-[20px] font-semibold">개정 사유</h4>
-      <p class="text-[16px] leading-relaxed text-ink/90">${esc(item.change?.reason || '')}</p>
+      <h4 class="mb-3 text-[27px] font-semibold">개정 사유</h4>
+      <p class="text-[23px] leading-relaxed text-ink/90">${esc(item.change?.reason || '')}</p>
     </section>
 
     <section class="mt-8">
-      <h4 class="mb-3 text-[20px] font-semibold">개정 제안</h4>
+      <h4 class="mb-3 text-[27px] font-semibold">개정 제안</h4>
       <div class="flex items-stretch gap-4">
         <div class="flex-1 rounded-[16px] bg-canvas p-5">
-          <div class="mb-3 text-[15px] font-medium text-ink/60">수정 전 <span class="ml-1">${curVer}</span></div>
-          <p class="text-[16px] leading-relaxed">${esc(item.change?.beforeSentence || '')}</p>
+          <div class="mb-3 text-[22px] font-medium text-ink/60">수정 전 <span class="ml-1">${curVer}</span></div>
+          <p class="text-[23px] leading-relaxed">${esc(item.change?.beforeSentence || '')}</p>
         </div>
-        <div class="flex items-center text-2xl text-muted">→</div>
+        <div class="flex items-center text-[31px] text-muted">→</div>
         <div class="flex-1 rounded-[16px] border-2 border-salmon bg-[#fff6f4] p-5">
-          <div class="mb-3 text-[15px] font-medium text-salmon">수정 제안 <span class="ml-1">${candVer}</span></div>
-          <p class="text-[16px] font-semibold leading-relaxed">${esc(item.change?.afterSentence || '')}</p>
+          <div class="mb-3 text-[22px] font-medium text-salmon">수정 제안 <span class="ml-1">${candVer}</span></div>
+          <p class="text-[23px] font-semibold leading-relaxed">${esc(item.change?.afterSentence || '')}</p>
         </div>
       </div>
     </section>
 
     <section class="mt-8">
-      <h4 class="mb-3 text-[20px] font-semibold">개정 제안 상세</h4>
+      <h4 class="mb-3 text-[27px] font-semibold">개정 제안 상세</h4>
       <div class="flex items-stretch gap-4">
         <div class="flex-1 overflow-hidden rounded-[16px] bg-canvas">
-          <div class="bg-ink px-5 py-3 text-[15px] font-semibold text-white">전체 현재 지침 <span class="ml-1 font-normal opacity-80">${curVer}</span></div>
-          <div class="p-5 text-[15px]">${renderContent(item.currentVersion?.content, item.change?.beforeSentence)}</div>
+          <div class="bg-ink px-5 py-3 text-[22px] font-semibold text-white">전체 현재 지침 <span class="ml-1 font-normal opacity-80">${curVer}</span></div>
+          <div class="p-5 text-[22px]">${renderContent(item.currentVersion?.content, item.change?.beforeSentence)}</div>
         </div>
-        <div class="flex items-center text-2xl text-muted">→</div>
+        <div class="flex items-center text-[31px] text-muted">→</div>
         <div class="flex-1 overflow-hidden rounded-[16px] bg-canvas">
-          <div class="bg-brand px-5 py-3 text-[15px] font-semibold text-white">전체 후보 지침 <span class="ml-1 font-normal opacity-80">${candVer}</span></div>
-          <div class="p-5 text-[15px]">${renderContent(item.candidateVersion?.content, item.change?.afterSentence)}</div>
+          <div class="bg-brand px-5 py-3 text-[22px] font-semibold text-white">전체 후보 지침 <span class="ml-1 font-normal opacity-80">${candVer}</span></div>
+          <div class="p-5 text-[22px]">${renderContent(item.candidateVersion?.content, item.change?.afterSentence)}</div>
         </div>
       </div>
     </section>
 
-    <section id="rejectBox" class="mt-8 ${state.rejecting ? '' : 'hidden'}">
-      <h4 class="mb-3 text-center text-[20px] font-semibold">반려 사유를 기입해 주세요.</h4>
-      <textarea id="rejectReason" rows="3"
-        class="w-full resize-none rounded-[16px] bg-canvas p-5 text-[16px] outline-none focus:ring-2 focus:ring-salmon"
-        placeholder="반려 사유를 입력하세요."></textarea>
-    </section>
-
     <section class="mt-8">
-      <h4 class="mb-4 text-[20px] font-semibold">근거 및 추가 정보</h4>
-      <div class="space-y-3 text-[16px]">
+      <h4 class="mb-4 text-[27px] font-semibold">근거 및 추가 정보</h4>
+      <div class="space-y-3 text-[23px]">
         <div class="flex gap-6">
-          <span class="w-28 shrink-0 text-ink/60">근거 신고</span>
+          <span class="w-48 shrink-0 text-ink/60">근거 신고</span>
           <span class="flex flex-wrap gap-2">
             ${evidenceIds.length
-              ? evidenceIds.map(id => `<span class="rounded-[12px] bg-canvas px-3 py-1 text-[14px]">${esc(id)}</span>`).join('')
+              ? evidenceIds.map(id => `<span class="rounded-[12px] bg-canvas px-3 py-1 text-[21px]">${esc(id)}</span>`).join('')
               : '<span class="text-muted">-</span>'}
           </span>
         </div>
         <div class="flex gap-6">
-          <span class="w-28 shrink-0 text-ink/60">우선순위 이유</span>
+          <span class="w-48 shrink-0 text-ink/60">우선순위 이유</span>
           <span>${priorityReason || '-'}</span>
         </div>
         <div class="flex gap-6">
-          <span class="w-28 shrink-0 text-ink/60">담당자</span>
+          <span class="w-48 shrink-0 text-ink/60">담당자</span>
           <span>${esc(item.manager?.name || '')} ${esc(item.manager?.id || '')}</span>
         </div>
         ${item.risk?.reason ? `
         <div class="flex gap-6">
-          <span class="w-28 shrink-0 text-ink/60">위험 사유</span>
+          <span class="w-48 shrink-0 text-ink/60">위험 사유</span>
           <span>${esc(item.risk.reason)}</span>
         </div>` : ''}
       </div>
     </section>
 
-    <div class="sticky bottom-4 mt-10 flex justify-center">
+    <div class="sticky bottom-4 mt-10 flex flex-col items-center gap-4">
+      ${state.rejecting ? `
+      <div id="rejectBox" class="w-[860px] max-w-full rounded-[20px] bg-white px-6 py-5 shadow-[0_4px_24px_rgba(0,0,0,0.12)]">
+        <h4 class="mb-3 text-center text-[27px] font-semibold">반려 사유를 기입해 주세요.</h4>
+        <textarea id="rejectReason" rows="3"
+          class="w-full resize-none rounded-[16px] bg-canvas p-5 text-[23px] outline-none focus:ring-2 focus:ring-salmon"
+          placeholder="반려 사유를 입력하세요."></textarea>
+      </div>` : ''}
       <div id="actionBar" class="flex items-center gap-4 rounded-[20px] bg-white px-6 py-4 shadow-[0_4px_24px_rgba(0,0,0,0.12)]">
         ${renderActionButtons()}
       </div>
@@ -398,14 +398,14 @@ function renderTechDetail(t) {
 function renderActionButtons() {
   if (state.rejecting) {
     return `
-      <span class="mr-2 text-[16px] font-medium text-ink/70">이 개정안을 반려할까요?</span>
-      <button id="btnCancel" class="rounded-[14px] bg-canvas px-7 py-3 text-[20px] font-semibold text-ink/70 hover:bg-[#ececec]">취소</button>
-      <button id="btnRejectSubmit" class="rounded-[14px] bg-ink px-7 py-3 text-[20px] font-semibold text-white hover:opacity-90">반려 제출</button>`;
+      <span class="mr-2 text-[23px] font-medium text-ink/70">이 개정안을 반려할까요?</span>
+      <button id="btnCancel" class="rounded-[14px] bg-canvas px-7 py-3 text-[27px] font-semibold text-ink/70 hover:bg-[#ececec]">취소</button>
+      <button id="btnRejectSubmit" class="rounded-[14px] bg-ink px-7 py-3 text-[27px] font-semibold text-white hover:opacity-90">반려 제출</button>`;
   }
   return `
-    <span class="mr-2 text-[16px] font-medium text-ink/70">해당 개정 제안과 수정에 동의하시나요?</span>
-    <button id="btnApprove" class="rounded-[14px] bg-brand px-9 py-3 text-[20px] font-semibold text-white hover:opacity-90">승인</button>
-    <button id="btnReject" class="rounded-[14px] bg-ink px-9 py-3 text-[20px] font-semibold text-white hover:opacity-90">반려</button>`;
+    <span class="mr-2 text-[23px] font-medium text-ink/70">해당 개정 제안과 수정에 동의하시나요?</span>
+    <button id="btnApprove" class="rounded-[14px] bg-brand px-9 py-3 text-[27px] font-semibold text-white hover:opacity-90">승인</button>
+    <button id="btnReject" class="rounded-[14px] bg-ink px-9 py-3 text-[27px] font-semibold text-white hover:opacity-90">반려</button>`;
 }
 
 /* ---------------------------------------------------------------------------
@@ -445,7 +445,6 @@ async function approve() {
   if (!item) return;
   const btn = document.getElementById('btnApprove');
   if (btn) { btn.disabled = true; btn.textContent = '처리 중…'; }
-  window.Muni?.react('approve');   // 뮤니: 승인 애니메이션
   try {
     await postJson(CONFIG.DECISION_PATH, {
       revisionId: item.revisionId,
@@ -471,7 +470,6 @@ async function submitReject() {
   }
   const btn = document.getElementById('btnRejectSubmit');
   if (btn) { btn.disabled = true; btn.textContent = '처리 중…'; }
-  window.Muni?.react('reject');   // 뮤니: 반려 애니메이션
   try {
     await postJson(CONFIG.DECISION_PATH, {
       revisionId: item.revisionId,
@@ -491,7 +489,6 @@ async function confirmTech() {
   if (!t) return;
   const btn = document.getElementById('btnConfirmTech');
   if (btn) { btn.disabled = true; btn.textContent = '처리 중…'; }
-  window.Muni?.react('confirm');   // 뮤니: 확인 애니메이션
   try {
     await postJson(CONFIG.TECH_CONFIRM_PATH, {
       reportId: t.reportId,
