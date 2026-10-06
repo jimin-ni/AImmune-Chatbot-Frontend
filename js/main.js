@@ -77,8 +77,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   // 메시지 전송 및 n8n 연동 처리
-  async function handleSend() {
-    const query = chatInput.value.trim();
+  // text를 넘기면 입력창을 거치지 않고 그 문장을 보낸 것처럼 처리한다 (입력 중인 글은 건드리지 않음)
+  async function handleSend(text) {
+    const fromCode = typeof text === 'string';
+    const query = (fromCode ? text : chatInput.value).trim();
     
     if (!query) {
       alert('질문 내용을 입력해주세요.');
@@ -92,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     appendUserMessage(query);
-    chatInput.value = '';
+    if (!fromCode) chatInput.value = '';
     
     // n8n 주소 설정 
     const n8nWebhookUrl = 'https://blitzrattle.app.n8n.cloud/webhook/41bed9d4-b444-4b4e-b620-1e47bf98a405/chat';
@@ -137,7 +139,8 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.removeItem('joy_session_id');
   }
   
-  btnReset.addEventListener('click', resetToHome);
+  // 초기화 버튼: 챗봇에 '/' + Enter를 입력한 것과 같게 동작한다 (세션 초기화는 n8n이 처리)
+  btnReset.addEventListener('click', () => handleSend('/'));
   if (btnBack) btnBack.addEventListener('click', resetToHome);
   
   // 건의 접수 팝업
