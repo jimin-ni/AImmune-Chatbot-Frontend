@@ -13,7 +13,7 @@ import { createMuni } from './muni-sheet.js';
  * ------------------------------------------------------------------------- */
 const CONFIG = {
   // WF-01 건의 접수 웹훅. V3 전용 워크플로우를 만들면 이 주소만 바꾸면 된다.
-  WEBHOOK_URL: 'https://blitzrattle.app.n8n.cloud/webhook/a-immune-report-v2',
+  WEBHOOK_URL: 'https://blitzrattle.app.n8n.cloud/webhook/a-immune-report-v3',
   TIMEOUT_MS: 45000,              // 접수 응답이 AI 분석 뒤에 오면 오래 걸릴 수 있다
   MAX_TEXT: 2000,
   MAX_FILE_BYTES: 10 * 1024 * 1024,
@@ -24,57 +24,52 @@ const CONFIG = {
  * ------------------------------------------------------------------------- */
 const STEPS = [
   {
-    key: 'agent', type: 'choice', required: true,
+    key: 'agent_name', type: 'choice', required: true,
     title: '어떤 Agent를 사용하셨나요?',
     error: '사용한 Agent를 선택해 주세요.',
     options: [
       { value: 'JOY', label: "I'M JOY", desc: '영업지원 AI' },
-      { value: 'A-Immune', label: 'A-Immune 핵심 Agent' },
+      { value: 'SAM', label: 'SAM' },
+      { value: '흥부장', label: '흥부장' },
+      { value: 'AI아트랩', label: 'AI아트랩' },
     ],
   },
   {
-    key: 'eventDate', type: 'date', required: true,
-    title: '언제 있었던 일인가요?',
-    error: '발생한 날짜를 선택해 주세요.',
+    key: 'reporter_email', type: 'email', required: true,
+    title: '결과는 어디로 안내해 드릴까요?',
+    placeholder: 'name@example.com',
+    error: '결과를 받을 이메일을 입력해 주세요.',
   },
-  {
-    key: 'eventTime', type: 'time', required: true,
-    title: '몇 시쯤이었나요?',
-    error: '발생한 시간을 입력해 주세요.',
-  },
+  { key: 'error_date', type: 'date', required: true,
+    title: '언제 있었던 일인가요?', error: '발생한 날짜를 선택해 주세요.' },
+  { key: 'error_time', type: 'time', required: true,
+    title: '몇 시쯤이었나요?', error: '발생한 시간을 입력해 주세요.' },
   {
     key: 'category', type: 'choice', required: true,
     title: '어떤 종류의 의견인가요?',
     error: '의견 종류를 선택해 주세요.',
     options: [
-      { value: 'UI/화면', label: 'UI/화면 오류' },
-      { value: 'AI 답변 품질', label: 'AI 답변 오답 및 불만족' },
-      { value: '기능 장애', label: '기능 동작 불가/오류' },
-      { value: '기타 건의', label: '기타 개선 건의' },
+      { value: '오류 신고', label: '오류 신고' },
+      { value: '사용 불편', label: '사용 불편' },
+      { value: '개선 요청', label: '개선 요청' },
     ],
   },
-  {
-    key: 'uiIssue', type: 'text', required: false,
-    title: '화면에서 불편했던 점이 있나요?',
-    placeholder: '화면 관련 특이사항이 있다면 적어 주세요.',
-  },
-  {
-    key: 'problem', type: 'text', required: true,
-    title: '어떤 문제가 있었나요?',
-    placeholder: '발생한 문제 상황을 자세히 적어 주세요.',
-    error: '문제 상황을 적어 주세요.',
-  },
-  {
-    key: 'requestContent', type: 'text', required: true,
-    title: '어떻게 개선되면 좋을까요?',
-    placeholder: '개선되기를 바라는 내용을 적어 주세요.',
-    error: '요청 내용을 적어 주세요.',
-  },
-  {
-    key: 'attachment', type: 'file', required: false,
-    title: '오류 화면이 있다면 첨부해 주세요',
-  },
+  { key: 'user_prompt', type: 'text', required: true,
+    title: 'Agent에게 어떤 질문을 보내셨나요?',
+    placeholder: 'Agent에게 보낸 프롬프트를 그대로 적어 주세요.',
+    error: '보낸 프롬프트를 적어 주세요.' },
+  { key: 'agent_response', type: 'text', required: true,
+    title: 'Agent는 뭐라고 답했나요?',
+    placeholder: 'Agent가 답변한 내용을 적어 주세요.',
+    error: 'Agent의 답변 내용을 적어 주세요.' },
+  { key: 'issue_request', type: 'text', required: true,
+    title: '무엇이 문제였고, 어떻게 바뀌면 좋을까요?',
+    placeholder: '문의하거나 요청하실 내용을 적어 주세요.',
+    error: '문의/요청 사항을 적어 주세요.' },
+  { key: 'image', type: 'file', required: false,
+    title: '오류 화면이 있다면 첨부해 주세요' },
 ];
+
 const LAST = STEPS.length - 1;
 
 /* ---------------------------------------------------------------------------
@@ -147,6 +142,9 @@ function controlHtml(s) {
       return `<input class="field" id="ctl" type="date" max="${todayLocal()}" ${lab} />`;
     case 'time':
       return `<input class="field" id="ctl" type="time" ${lab} />`;
+    case 'email':
+      return `<input class="field" id="ctl" type="email" inputmode="email" autocomplete="email" placeholder="${s.placeholder}" ${lab} />`;
+    
     case 'text':
       return `<textarea class="field" id="ctl" rows="5" maxlength="${CONFIG.MAX_TEXT}" placeholder="${s.placeholder}" ${lab}></textarea>
               <p class="counter" id="counter" aria-hidden="true"></p>`;
@@ -267,7 +265,9 @@ function showError(msg) {
 
 function validate(s) {
   if (s.required && isEmpty(answers[s.key])) return s.error;
-  if (s.type === 'date' && answers.eventDate && answers.eventDate > todayLocal()) return '오늘 이후 날짜는 선택할 수 없어요.';
+  if (s.type === 'email' && !/^[^\s@<>",;\\]+@[^\s@<>",;\\]+\.[^\s@<>",;\\]+$/.test(answers[s.key].trim()))
+    return '올바른 이메일 주소를 입력해 주세요.';
+  if (s.type === 'date' && answers.error_date && answers.error_date > todayLocal()) return '오늘 이후 날짜는 선택할 수 없어요.';
   return '';
 }
 
@@ -307,7 +307,7 @@ let lastNod = 0;
 form.addEventListener('input', (e) => {
   const s = STEPS[idx];
   const t = e.target;
-  if (s.type === 'text' || s.type === 'date' || s.type === 'time') {
+  if (s.type === 'text' || s.type === 'date' || s.type === 'time' || s.type === 'email') {
     answers[s.key] = t.value;
     showError('');
     renderNav();
@@ -371,6 +371,11 @@ async function submit() {
   muni.thinking(true);
 
   const body = new FormData();
+  for (const s of STEPS) {
+    if (s.type === 'file') continue;
+    body.append(s.key, (answers[s.key] || '').trim());   // agent_name, reporter_email, error_date, ... 
+  }
+  if (answers.image) body.append('image', answers.image, answers.image.name);
   body.append('agent', answers.agent || '');
   body.append('eventDate', answers.eventDate || '');
   body.append('eventTime', answers.eventTime || '');
