@@ -47,6 +47,16 @@ CLUSTERS.forEach((c, ci) => c.f.forEach((f) => { FRAME_CLUSTER[f] = ci; }));
 // 시선 연출에 쓰는 프레임
 const LOOK = { left: 24, right: 10, down: 19, up: 0 };
 
+// 자연스러움 조절값 — 여기만 바꾸면 느낌이 달라진다
+const TUNE = {
+  followMs: 140,    // 커서를 따라잡는 시간 상수(ms). 클수록 느긋하게 따라감 (0이면 즉시)
+  fadeMs: 90,       // 프레임이 바뀔 때 앞 프레임과 섞이는 시간(ms)
+  stepMs: 40,       // 방향이 크게 바뀔 때 중간 프레임 하나를 보여주는 시간(ms)
+  parallax: 0.035,  // 커서 쪽으로 몸이 쏠리는 거리 (뮤니 너비 대비 비율)
+  tiltDeg: 2.2,     // 커서 쪽으로 기우는 각도
+  bodyFollowMs: 260,// 몸 쏠림/기울기가 따라가는 시간 상수(ms)
+};
+
 const circDiff = (a, b) => Math.abs(((a - b + 540) % 360) - 180);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -68,6 +78,13 @@ export async function createMuni({ canvas, fx, glow }) {
   let seq = 0;                 // 연출 번호는 계속 증가시켜 예전 연출이 되살아나지 않게 한다
   let raf = 0;
   let lastStep = 0;
+  let tgt = null;              // 커서의 실제 위치
+  let sp = null;               // 부드럽게 따라온 위치 (프레임은 이 위치로 고른다)
+  let par = { x: 0, y: 0, r: 0 };   // 몸 쏠림(px)·기울기(deg) 현재값
+  let parT = { x: 0, y: 0, r: 0 };  // 몸 쏠림·기울기 목표값
+  let prev = -1;               // 크로스페이드 중인 이전 프레임
+  let fadeStart = 0;
+  let lastT = 0;
 
   /* ---------- 그리기 ---------- */
   function fit() {
@@ -77,15 +94,40 @@ export async function createMuni({ canvas, fx, glow }) {
     if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
     draw();
   }
-  function draw() {
+  function drawFrame(f) {
     const c = SHEET.crop;
-    const sx = (cur % SHEET.cols) * SHEET.cell + c.x;
-    const sy = Math.floor(cur / SHEET.cols) * SHEET.cell + c.y;
+    const sx = (f % SHEET.cols) * SHEET.cell + c.x;
+    const sy = Math.floor(f / SHEET.cols) * SHEET.cell + c.y;
+    ctx.drawImage(img, sx, sy, c.w, c.h, 0, 0, canvas.width, canvas.height);
+  }
+  function draw(t = performance.now()) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(img, sx, sy, c.w, c.h, 0, 0, canvas.width, canvas.height);
+    ctx.globalAlpha = 1;
+    if (prev >= 0) {
+      const a = (t - fadeStart) / TUNE.fadeMs;
+      if (a < 1) {                       // 앞 프레임 위에 새 프레임을 점점 진하게 얹는다 (중간에 몸이 투명해지지 않음)
+        drawFrame(prev);
+        ctx.globalAlpha = Math.max(0, a);
+        drawFrame(cur);
+        ctx.globalAlpha = 1;
+        canvas.dataset.frame = String(cur);
+        return;
+      }
+      prev = -1;
+    }
+    drawFrame(cur);
     canvas.dataset.frame = String(cur);
+  }
+  // 프레임 교체. blend=true면 앞 프레임과 살짝 섞는다
+  function show(f, blend = false) {
+    if (f === cur) return;
+    prev = blend && !reduce.matches && TUNE.fadeMs > 0 ? cur : -1;
+    fadeStart = performance.now();
+    cur = f;
+    draw(fadeStart);
+    if (prev >= 0) kick();
   }
   new ResizeObserver(fit).observe(canvas);
   fit();
@@ -115,7 +157,15 @@ export async function createMuni({ canvas, fx, glow }) {
 
   function aimAt(x, y) {
     lastPoint = [x, y];
-    if (scripted) return;
+    tgt = [x, y];
+    if (!sp || reduce.matches || TUNE.followMs <= 0) sp = [x, y];
+    kick();
+  }
+
+  // 부드럽게 따라온 위치(sp)를 보고 프레임과 몸 쏠림을 정한다
+  function steer() {
+    if (!sp) return;
+    const [x, y] = sp;
     const r = canvas.getBoundingClientRect();
     const c = SHEET.crop;
     const ex = r.left + ((SHEET.eye.x - c.x) / c.w) * r.width;
@@ -124,7 +174,7 @@ export async function createMuni({ canvas, fx, glow }) {
     const dy = y - ey;
     const dist = Math.hypot(dx, dy);
     const dead = r.width * 0.2;
-    if (dist < dead) { sticky = null; setAim(SHEET.front); return; }
+    if (dist < dead) { sticky = null; parT = { x: 0, y: 0, r: 0 }; setAim(SHEET.front); return; }
 
     const ang = (Math.atan2(dy, dx) * 180) / Math.PI;
     let best = 0;
@@ -136,6 +186,12 @@ export async function createMuni({ canvas, fx, glow }) {
     sticky = best;
 
     const strength = Math.min(1, (dist - dead) / (r.width * 1.2));
+    if (reduce.matches) parT = { x: 0, y: 0, r: 0 };
+    else parT = {
+      x: (dx / dist) * strength * r.width * TUNE.parallax,
+      y: (dy / dist) * strength * r.width * TUNE.parallax * 0.6,
+      r: (dx / dist) * strength * TUNE.tiltDeg,
+    };
     const f = CLUSTERS[best].f;
     setAim(f[Math.round(strength * (f.length - 1))]);
   }
@@ -146,18 +202,43 @@ export async function createMuni({ canvas, fx, glow }) {
     aimAt(r.left + r.width / 2, r.top + Math.min(r.height / 2, 60));
   }
 
-  function tick(t) {
+  // 한 프레임마다: 커서 따라잡기 → 프레임 고르기 → 중간 프레임 재생 → 몸 쏠림 → 크로스페이드
+  function loop(t) {
     raf = 0;
-    if (scripted || !path.length) return;
-    const hold = path.length > 1 ? 34 : 70;
-    if (t - lastStep >= hold) {
-      cur = path.shift();
-      lastStep = t;
-      draw();
+    const dt = lastT ? Math.min(64, t - lastT) : 16;
+    lastT = t;
+    let busy = false;
+
+    if (tgt && sp) {
+      const k = TUNE.followMs > 0 ? 1 - Math.exp(-dt / TUNE.followMs) : 1;
+      const mx = tgt[0] - sp[0];
+      const my = tgt[1] - sp[1];
+      if (Math.hypot(mx, my) > 0.5) { sp = [sp[0] + mx * k, sp[1] + my * k]; busy = true; }
+      else sp = [tgt[0], tgt[1]];
+      if (!scripted) steer();
     }
-    if (path.length) kick();
+
+    if (!scripted && path.length) {
+      if (t - lastStep >= TUNE.stepMs) {
+        show(path.shift(), true);
+        lastStep = t;
+      }
+      if (path.length) busy = true;
+    }
+
+    if (scripted) parT = { x: 0, y: 0, r: 0 };
+    const kb = 1 - Math.exp(-dt / TUNE.bodyFollowMs);
+    par = { x: par.x + (parT.x - par.x) * kb, y: par.y + (parT.y - par.y) * kb, r: par.r + (parT.r - par.r) * kb };
+    if (Math.abs(par.x - parT.x) + Math.abs(par.y - parT.y) + Math.abs(par.r - parT.r) > 0.03) busy = true;
+    else par = { ...parT };
+    canvas.style.translate = `${par.x.toFixed(2)}px ${par.y.toFixed(2)}px`;
+    canvas.style.rotate = `${par.r.toFixed(2)}deg`;
+
+    if (prev >= 0) { draw(t); busy = true; }
+
+    if (busy) kick(); else lastT = 0;
   }
-  function kick() { if (!raf && !scripted) raf = requestAnimationFrame(tick); }
+  function kick() { if (!raf) raf = requestAnimationFrame(loop); }
 
   /* ---------- 연출용 시선 (눈 굴리기, 두리번) ---------- */
   async function playGaze(steps) {
@@ -166,14 +247,14 @@ export async function createMuni({ canvas, fx, glow }) {
     scripted = token;
     for (const [frame, ms] of steps) {
       if (token !== scripted) return;               // 새 연출이 시작되면 중단
-      cur = frame; draw();
+      show(frame);
       await sleep(ms);
     }
     if (token === scripted) { scripted = 0; resume(); }
   }
   function resume() {
     sticky = null; path = []; aim = -1;
-    if (lastPoint) aimAt(lastPoint[0], lastPoint[1]); else setAim(SHEET.front);
+    if (lastPoint) { aimAt(lastPoint[0], lastPoint[1]); steer(); } else setAim(SHEET.front);
   }
   const ring = (ms) => Array.from({ length: SHEET.frames }, (_, i) => [i, ms]);
 
@@ -298,7 +379,7 @@ export async function createMuni({ canvas, fx, glow }) {
     scripted = token;
     while (thinkingOn && token === scripted) {
       for (let i = 0; i < SHEET.frames && thinkingOn && token === scripted; i++) {
-        cur = i; draw();
+        show(i);
         await sleep(70);
       }
     }
