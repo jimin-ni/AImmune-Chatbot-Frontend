@@ -78,7 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // 메시지 전송 및 n8n 연동 처리
   // text를 넘기면 입력창을 거치지 않고 그 문장을 보낸 것처럼 처리한다 (입력 중인 글은 건드리지 않음)
-  async function handleSend(text) {
+  // opts.clearOnSuccess: 응답이 성공하면 이전 대화를 지우고 방금 보낸 문장부터 다시 보여준다 (실패하면 대화 유지)
+  async function handleSend(text, opts = {}) {
     const fromCode = typeof text === 'string';
     const query = (fromCode ? text : chatInput.value).trim();
     
@@ -115,6 +116,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       const data = await response.json();
+
+      if (opts.clearOnSuccess) {
+        chatContainer.innerHTML = '';
+        appendUserMessage(query);
+      }
       
       // n8n 'JOY 최종 응답' 또는 'JOY 추가 질문' 노드가 반환하는 { reply: "..." } 활용
       if (data && data.reply) {
@@ -139,8 +145,9 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.removeItem('joy_session_id');
   }
   
-  // 초기화 버튼: 챗봇에 '/' + Enter를 입력한 것과 같게 동작한다 (세션 초기화는 n8n이 처리)
-  btnReset.addEventListener('click', () => handleSend('/'));
+  // 초기화 버튼: 챗봇에 '/' + Enter를 입력한 것과 같게 동작한다 (세션 초기화는 n8n이 처리).
+  // 성공하면 화면의 이전 대화도 지운다.
+  btnReset.addEventListener('click', () => handleSend('/', { clearOnSuccess: true }));
   if (btnBack) btnBack.addEventListener('click', resetToHome);
   
   // 건의 접수 팝업
