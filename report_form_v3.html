@@ -19,12 +19,16 @@
   <main class="wizard">
 
     <!-- 뮤니: 커서와 입력창을 바라보고, 답을 입력하면 반응한다 -->
-    <section class="stage" id="stage" aria-hidden="true">
-      <div class="spot" id="spot"></div>
+    <section class="stage" id="stage">
+      <div class="spot" id="spot" aria-hidden="true"></div>
       <div class="muni">
-        <div class="muni-body"><canvas id="muni-canvas"></canvas></div>
+        <!-- 뮤니를 누르면(또는 Enter/Space) 말풍선으로 자기소개를 한다 -->
+        <div class="muni-body" id="muni-body" role="button" tabindex="0" aria-label="뮤니 이야기 듣기">
+          <canvas id="muni-canvas" aria-hidden="true"></canvas>
+        </div>
       </div>
-      <div class="fx" id="fx"></div>
+      <p class="bubble" id="bubble" role="status" aria-live="polite" hidden></p>
+      <div class="fx" id="fx" aria-hidden="true"></div>
     </section>
 
     <section class="flow">
