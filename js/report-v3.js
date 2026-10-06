@@ -1,10 +1,11 @@
 /* =========================================================================
  * 건의 접수 V3 — 1화면 1문항 + 뮤니
  *
- * 문항은 n8n 건의 접수 폼(report_form.html / V2)과 같은 8개이며 순서도 같다.
- * 답은 n8n 웹훅으로 보낸다. 키 이름은 V2와 같다:
- *   agent, eventDate, eventTime, category, uiIssue, problem, requestContent, submittedAt
- *   + 첨부가 있으면 attachment (파일)
+ * 문항은 WF-01(카드뉴스 형식 폼 플로우)의 입력 필드와 같은 9개이며 순서도 같다.
+ * 답은 n8n 웹훅으로 보내고, 키 이름은 STEPS의 key 그대로다 (한 키는 한 번만 보낸다):
+ *   agent_name, reporter_email, error_date, error_time, category,
+ *   user_prompt, agent_response, issue_request
+ *   + 첨부가 있으면 image (파일)
  * ========================================================================= */
 import { createMuni } from './muni-sheet.js';
 
@@ -220,7 +221,7 @@ function updateCounter() {
 /* 첨부 */
 function renderFile() {
   const area = $('#file-area');
-  const f = answers.attachment;
+  const f = answers.image;
   if (f) {
     area.innerHTML = `
       <div class="picked">
@@ -243,7 +244,7 @@ function takeFile(f) {
   const okType = ['image/png', 'image/jpeg', 'image/webp'].includes(f.type);
   if (!okType) return showError('PNG, JPG, WEBP 이미지만 첨부할 수 있어요.');
   if (f.size > CONFIG.MAX_FILE_BYTES) return showError(`${fmtSize(CONFIG.MAX_FILE_BYTES)} 이하 파일만 첨부할 수 있어요.`);
-  answers.attachment = f;
+  answers.image = f;
   showError('');
   renderFile();
   renderNav();
@@ -342,7 +343,7 @@ form.addEventListener('click', (e) => {
     if (label && e.detail > 0 && !sending) setTimeout(() => { if (STEPS[idx] === s && answers[s.key]) advance(); }, 380);
   }
   if (e.target.id === 'file-remove') {
-    delete answers.attachment;
+    delete answers.image;
     renderFile(); renderNav(); focusControl();
   }
 });
@@ -376,15 +377,6 @@ async function submit() {
     body.append(s.key, (answers[s.key] || '').trim());   // agent_name, reporter_email, error_date, ... 
   }
   if (answers.image) body.append('image', answers.image, answers.image.name);
-  body.append('agent', answers.agent || '');
-  body.append('eventDate', answers.eventDate || '');
-  body.append('eventTime', answers.eventTime || '');
-  body.append('category', answers.category || '');
-  body.append('uiIssue', (answers.uiIssue || '').trim());
-  body.append('problem', (answers.problem || '').trim());
-  body.append('requestContent', (answers.requestContent || '').trim());
-  body.append('submittedAt', new Date().toISOString());
-  if (answers.attachment) body.append('attachment', answers.attachment, answers.attachment.name);
 
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), CONFIG.TIMEOUT_MS);
