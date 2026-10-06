@@ -240,8 +240,8 @@ function renderFile() {
 }
 function takeFile(f) {
   if (!f) return;
-  const okType = f.type.startsWith('image/') || f.type === 'application/pdf';
-  if (!okType) return showError('이미지나 PDF 파일만 첨부할 수 있어요.');
+  const okType = ['image/png', 'image/jpeg', 'image/webp'].includes(f.type);
+  if (!okType) return showError('PNG, JPG, WEBP 이미지만 첨부할 수 있어요.');
   if (f.size > CONFIG.MAX_FILE_BYTES) return showError(`${fmtSize(CONFIG.MAX_FILE_BYTES)} 이하 파일만 첨부할 수 있어요.`);
   answers.attachment = f;
   showError('');
