@@ -170,4 +170,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // V3: 1화면 1문항 + 뮤니 건의 접수 페이지
+  if (btnReport3) {
+    btnReport3.addEventListener('click', () => {
+      window.location.href = 'report_form_v3.html';
+    });
+  }
+
 });

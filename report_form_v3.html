@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>건의 접수 | A-Immune</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/report-v3.css" />
+</head>
+<body>
+
+  <header class="top">
+    <img src="Logo/Ktmns.png" alt="kt m&s" />
+    <a class="back" href="/">대화로 돌아가기</a>
+  </header>
+
+  <main class="wizard">
+
+    <!-- 뮤니: 커서와 입력창을 바라보고, 답을 입력하면 반응한다 -->
+    <section class="stage" id="stage" aria-hidden="true">
+      <div class="spot" id="spot"></div>
+      <div class="muni">
+        <div class="muni-body"><canvas id="muni-canvas"></canvas></div>
+      </div>
+      <div class="fx" id="fx"></div>
+    </section>
+
+    <section class="flow">
+      <div id="flow-form">
+        <ol class="progress" id="progress" aria-label="질문 진행 상황"></ol>
+        <p class="count" id="count" aria-live="polite"></p>
+
+        <form id="report-form" novalidate>
+          <div id="step-host"></div>
+          <div class="nav">
+            <button type="button" class="btn-back" id="btn-back">이전</button>
+            <button type="submit" class="btn-next" id="btn-next">다음</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="done" id="done" hidden>
+        <h2 class="q" id="done-title" tabindex="-1">건의가 접수되었어요</h2>
+        <p class="done-text">보내 주신 의견은 담당자가 검토해요.</p>
+        <p class="done-id" id="done-id" hidden></p>
+        <div class="done-actions">
+          <button type="button" class="btn-next" id="btn-again">새 건의 작성</button>
+          <a class="btn-link" href="/">대화로 돌아가기</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <noscript><p class="noscript">건의 접수 화면은 JavaScript를 켜야 사용할 수 있어요.</p></noscript>
+  <script type="module" src="js/report-v3.js"></script>
+</body>
+</html>
