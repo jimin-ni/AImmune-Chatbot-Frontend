@@ -8,6 +8,7 @@
  *   + 첨부가 있으면 image (파일)
  * ========================================================================= */
 import { createMuni } from './muni-sheet.js';
+import { createLinePicker } from './muni-lines.js';
 
 /* ---------------------------------------------------------------------------
  * 0. 설정
@@ -99,6 +100,36 @@ try {
 } catch (err) {
   console.warn('[건의 접수] 뮤니를 불러오지 못했어요:', err);
   $('#stage').hidden = true;        // 폼은 뮤니 없이도 그대로 쓸 수 있다
+}
+
+// 뮤니를 누르면 말풍선으로 자기소개 한마디 (랜덤, 한 바퀴 돌 때까지 중복 없음)
+const bubble = $('#bubble');
+const museBody = $('#muni-body');
+const nextLine = createLinePicker();
+let bubbleTimer = 0;
+function hideBubble() {
+  clearTimeout(bubbleTimer);
+  if (bubble.hidden) return;
+  bubble.classList.remove('show');
+  bubble.classList.add('hide');
+  setTimeout(() => { if (bubble.classList.contains('hide')) { bubble.hidden = true; bubble.classList.remove('hide'); } }, 200);
+}
+function speak() {
+  clearTimeout(bubbleTimer);
+  bubble.textContent = nextLine();
+  bubble.hidden = false;
+  bubble.classList.remove('hide', 'show');
+  void bubble.offsetWidth;                 // 애니메이션 재시작
+  bubble.classList.add('show');
+  muni.react('happy');
+  bubbleTimer = setTimeout(hideBubble, 3000 + bubble.textContent.length * 90);
+}
+if (museBody) {
+  museBody.addEventListener('click', speak);
+  museBody.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); speak(); }
+  });
+  document.addEventListener('pointerdown', (e) => { if (!museBody.contains(e.target)) hideBubble(); });
 }
 
 // 커서를 따라본다. 입력 중이거나 창을 벗어나면 입력창을 바라본다.

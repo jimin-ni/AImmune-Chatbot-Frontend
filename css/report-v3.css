@@ -112,6 +112,51 @@ button, input, textarea { font: inherit; color: inherit; }
   animation: muni-breathe 4.4s ease-in-out infinite;   /* 가만히 있어도 살아있는 느낌 (translate/rotate는 JS가 따로 조절) */
 }
 @keyframes muni-breathe { 50% { scale: 1 1.014; } }
+.muni-body { cursor: pointer; border-radius: 40%; -webkit-tap-highlight-color: transparent; }
+.muni-body:focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; }
+
+/* 뮤니 말풍선 */
+.bubble {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  top: 0;
+  width: max-content;
+  max-width: min(84%, 340px);
+  margin: 0;
+  padding: 14px 18px;
+  background: #fff;
+  color: var(--ink);
+  border: 1.5px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(29, 35, 64, .12);
+  font: 500 15.5px/1.55 'Noto Sans KR', sans-serif;
+  text-align: center;
+  word-break: keep-all;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.bubble::after {              /* 말풍선 꼬리 */
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-right: 1.5px solid var(--line);
+  border-bottom: 1.5px solid var(--line);
+  transform: translateX(-50%) rotate(45deg);
+}
+.bubble.show { animation: bubble-in .28s cubic-bezier(.3, 1.4, .5, 1) both; }
+.bubble.hide { animation: bubble-out .2s ease-in both; }
+@keyframes bubble-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px) scale(.9); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+@keyframes bubble-out {
+  to { opacity: 0; transform: translateX(-50%) translateY(4px) scale(.96); }
+}
 .fx { position: absolute; inset: 0; pointer-events: none; }
 
 .spark {
