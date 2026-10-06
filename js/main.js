@@ -141,10 +141,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnBack) btnBack.addEventListener('click', resetToHome);
   
   // 건의 접수 팝업
-  btnReport.addEventListener('click', () => {
-    const n8nFormUrl = 'https://blitzrattle.app.n8n.cloud/form/a-immune-report';
-    window.open(n8nFormUrl, 'A-Immune 건의접수', 'width=650,height=800,scrollbars=yes');
-  });
+  // V1 버튼은 index.html에서 주석 처리됨 → 없으면 건너뜀 (null 에러로 아래 리스너가 죽는 것 방지)
+  if (btnReport) {
+    btnReport.addEventListener('click', () => {
+      const n8nFormUrl = 'https://blitzrattle.app.n8n.cloud/form/a-immune-report';
+      window.open(n8nFormUrl, 'A-Immune 건의접수', 'width=650,height=800,scrollbars=yes');
+    });
+  }
   
   // 이벤트 리스너 등록
   btnSend.addEventListener('click', handleSend);
