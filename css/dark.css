@@ -1,0 +1,50 @@
+/* =========================================================================
+ * 챗봇 화면(index.html) 전용 다크 모드 — <html class="dark">일 때만 적용
+ * 다른 페이지(대시보드·내역·건의 폼)는 이 파일을 불러오지 않는다.
+ * ========================================================================= */
+html { color-scheme: light; }
+html.dark { color-scheme: dark; }
+
+/* 달/해 아이콘 전환 */
+.icon-sun { display: none; }
+html.dark .icon-sun { display: block; }
+html.dark .icon-moon { display: none; }
+
+/* 전환할 때만 부드럽게 (JS가 잠깐 theme-anim을 붙였다 뗀다) */
+html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
+  transition: background-color .25s ease, color .25s ease, border-color .25s ease !important;
+}
+
+/* ---- 면 ---- */
+html.dark body,
+html.dark .bg-\[\#f8f9fa\] { background-color: #0f1218; }
+html.dark .bg-white { background-color: #1a1e27; }
+html.dark .bg-\[\#eceef3\] { background-color: #202531; }
+
+/* ---- 선 ---- */
+html.dark .border-\[\#E1E1E1\],
+html.dark .border-gray-200,
+html.dark .border-gray-200\/50,
+html.dark .border-gray-300 { border-color: #2d3240; }
+html.dark .markdown-body * { border-color: #2d3240; }
+
+/* ---- 글자 ---- */
+html.dark body,
+html.dark .text-gray-800,
+html.dark .text-black { color: #eef0f7; }
+html.dark .text-gray-700 { color: #cdd3e3; }
+html.dark .text-gray-600 { color: #b6bdd0; }
+html.dark .text-gray-500 { color: #9aa3b8; }
+html.dark .text-blue-600,
+html.dark .text-blue-500 { color: #7aa6ff; }
+html.dark .hover\:text-black:hover { color: #fff; }
+html.dark .placeholder-gray-400::placeholder { color: #7c869d; }
+
+/* ---- 스크롤바 ---- */
+html.dark #chat-container::-webkit-scrollbar-thumb { background-color: #3a4050; }
+
+/* ---- 로고 ---- */
+/* kt m&s: 검정 글자를 흰색으로 (빨강은 유지되도록 색조 회전) */
+html.dark header img[alt="kt m&s"] { filter: invert(1) hue-rotate(180deg); }
+/* NEXUS: 흰 배경이 있는 이미지라 반전하면 검은 상자가 됨 → 그대로 두고 모서리만 둥글게 해서 흰 배지처럼 */
+html.dark header img[alt="NEXUS"] { border-radius: 16px; }
