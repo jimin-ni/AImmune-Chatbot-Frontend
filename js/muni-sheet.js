@@ -288,7 +288,7 @@ export async function createMuni({ canvas, fx, glow }) {
   function confetti(n) {
     const layer = document.createElement('div');
     layer.className = 'confetti';
-    const colors = ['#ff4fa8', '#2f5fd0', '#ffc83d', '#ff8f7a', '#6aa0ff'];
+    const colors = ['#ff4fa8', '#558aeb', '#ffc83d', '#ff8f7a', '#6aa0ff'];
     for (let i = 0; i < n; i++) {
       const p = document.createElement('i');
       p.style.left = Math.random() * 100 + '%';

@@ -3,12 +3,12 @@
  * 주인공은 뮤니. 나머지는 조용하게 둔다 (카드·그림자 없이 큰 질문 한 줄과 입력만).
  * ========================================================================= */
 :root {
-  --mist: #e8edf7;
-  --spot: #f8faff;
+  --mist: #f6f6ff;
+  --spot: #ffffff;
   --ink: #1d2340;
   --slate: #5a6284;
   --line: #c3cce4;
-  --blue: #2f5fd0;
+  --blue: #558aeb;
   --blue-soft: #e6edfd;
   --pink: #ff4fa8;
   --rose: #c9254b;
@@ -37,7 +37,7 @@ body {
   line-height: 1.5;
 }
 button, input, textarea { font: inherit; color: inherit; }
-:focus-visible { outline: 3px solid rgba(47, 95, 208, .5); outline-offset: 2px; }
+:focus-visible { outline: 3px solid rgba(85, 138, 235, .5); outline-offset: 2px; }
 
 /* ---------- 상단 ---------- */
 .top {
@@ -83,7 +83,7 @@ button, input, textarea { font: inherit; color: inherit; }
   position: absolute;
   inset: 4% 2% 10%;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 42%, #fff 0%, var(--spot) 48%, rgba(248, 250, 255, 0) 72%);
+  background: radial-gradient(circle at 50% 42%, #fff 0%, var(--spot) 48%, rgba(246, 246, 255, 0) 72%);
 }
 .spot.pulse { animation: glow .8s ease-out; }
 @keyframes glow {
@@ -240,7 +240,7 @@ button, input, textarea { font: inherit; color: inherit; }
   background: var(--white);
   font-size: 17px;
 }
-.field:focus { border-color: var(--blue); outline: 3px solid rgba(47, 95, 208, .22); outline-offset: 0; }
+.field:focus { border-color: var(--blue); outline: 3px solid rgba(85, 138, 235, .22); outline-offset: 0; }
 textarea.field { min-height: 156px; resize: vertical; line-height: 1.6; }
 .field::placeholder { color: #8d95b3; }
 .field[aria-invalid="true"] { border-color: var(--rose); }
@@ -281,7 +281,7 @@ textarea.field { min-height: 156px; resize: vertical; line-height: 1.6; }
   background-color: var(--blue);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 7.4l2.6 2.6L11 4.4'/%3E%3C/svg%3E");
 }
-.choice:has(input:focus-visible) { outline: 3px solid rgba(47, 95, 208, .5); outline-offset: 2px; }
+.choice:has(input:focus-visible) { outline: 3px solid rgba(85, 138, 235, .5); outline-offset: 2px; }
 
 /* 첨부 */
 .drop {
@@ -298,7 +298,7 @@ textarea.field { min-height: 156px; resize: vertical; line-height: 1.6; }
   transition: border-color .15s, background-color .15s;
 }
 .drop:hover, .drop.over { border-color: var(--blue); background: var(--white); }
-.drop:has(input:focus-visible) { outline: 3px solid rgba(47, 95, 208, .5); outline-offset: 2px; }
+.drop:has(input:focus-visible) { outline: 3px solid rgba(85, 138, 235, .5); outline-offset: 2px; }
 .drop input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .drop strong { font-weight: 500; font-size: 17px; }
 .drop span { color: var(--slate); font-size: 14px; }
@@ -346,8 +346,8 @@ textarea.field { min-height: 156px; resize: vertical; line-height: 1.6; }
   cursor: pointer;
   transition: background-color .15s;
 }
-.btn-next:hover { background: #2652b8; }
-.btn-next:disabled { background: #8da4de; cursor: progress; }
+.btn-next:hover { background: #4478de; }
+.btn-next:disabled { background: #a6bff4; cursor: progress; }
 .btn-link { padding: 12px 8px; color: var(--slate); font-size: 16px; }
 
 /* ---------- 완료 ---------- */
