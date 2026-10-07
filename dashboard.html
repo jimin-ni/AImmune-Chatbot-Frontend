@@ -105,8 +105,10 @@
   <div class="absolute left-[147px] top-[266px] h-[1334px] w-[492px] bg-white shadow-nav">
     <div class="absolute left-[24px] top-[36px] flex h-[96px] w-[442px] items-center gap-5 rounded-[16px] bg-canvas px-4">
       <img src="Button/Primary/Medium/Default/Profile.png" alt="관리자" class="h-[70px] w-[70px] shrink-0 object-contain" />
-      <span class="text-[27px] font-medium">관리자 아이디</span>
-      <span class="ml-auto pr-3 text-[27px]" id="mgrId">M-001</span>
+      <div class="flex min-w-0 flex-1 flex-col leading-tight">
+        <span class="whitespace-nowrap text-[27px] font-medium">관리자 아이디</span>
+        <span class="text-[24px] text-ink/80" id="mgrId">M-001</span>
+      </div>
     </div>
   </div>
 
@@ -147,6 +149,7 @@
       window.addEventListener('resize', fit); fit();
     })();
   </script>
+  <script src="js/manager.js"></script>
   <script src="js/dashboard.js"></script>
 </body>
 </html>

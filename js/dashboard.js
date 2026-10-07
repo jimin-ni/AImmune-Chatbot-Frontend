@@ -12,7 +12,7 @@ const CONFIG = {
   PENDING_PATH: '/webhook/a-immune-admin-pending',      // WF-04 조회
   DECISION_PATH: '/webhook/a-immune-revision-decision',  // WF-02 승인/반려
   TECH_CONFIRM_PATH: '/webhook/a-immune-tech-confirm',   // WF-04 기술 문제 확인
-  MANAGER_ID: 'M-001',   // 현재 로그인한 관리자
+  MANAGER_ID: window.AIMMUNE_MANAGER?.get() ?? 'M-001',   // 현재 담당자 (화면 왼쪽 '관리자 아이디'에서 선택)
   USE_SAMPLE_ON_FAIL: false, // true면 연결 실패 시 샘플 데이터 표시
 };
 
@@ -89,7 +89,7 @@ function renderContent(content, highlight) {
  * 3. 데이터 가져오기
  * ------------------------------------------------------------------------- */
 async function fetchPending() {
-  const url = CONFIG.N8N_BASE_URL + CONFIG.PENDING_PATH;
+  const url = CONFIG.N8N_BASE_URL + CONFIG.PENDING_PATH + '?managerId=' + encodeURIComponent(CONFIG.MANAGER_ID);
   console.log('[A-IMMUNE] 조회 요청 →', url);
 
   const ctrl = new AbortController();
@@ -250,8 +250,8 @@ function renderRevisionDetail(item) {
         </span>
       </div>
       <div class="text-right text-[21px] text-muted">
-        <div>요청일: ${esc(item.createdAt || '')}</div>
-        <div>사건 발생일: ${esc(item.createdAt || '')}</div>
+        <div>요청일: ${esc(item.firstSubmittedAt || item.createdAt || '')}</div>
+        <div>사건 발생일: ${esc(item.occurredAt || '-')}</div>
       </div>
     </div>
     <div class="mt-2 text-[23px] text-ink/70">
@@ -361,6 +361,7 @@ function renderTechDetail(t) {
       </div>
       <div class="text-right text-[14px] text-muted">
         <div>요청일: ${esc(t.createdAt || '')}</div>
+        <div>사건 발생일: ${esc(t.occurredAt || '-')}</div>
         <div>신고번호: ${esc(t.reportId || '')}</div>
       </div>
     </div>
@@ -413,6 +414,12 @@ function renderActionButtons() {
       <button id="btnCancel" class="rounded-[14px] bg-canvas px-7 py-3 text-[27px] font-semibold text-ink/70 hover:bg-[#ececec]">취소</button>
       <button id="btnRejectSubmit" class="rounded-[14px] bg-ink px-7 py-3 text-[27px] font-semibold text-white hover:opacity-90">반려 제출</button>`;
   }
+  if (getSelected()?.staleBase) {
+    return `
+      <span class="mr-2 text-[23px] font-medium text-[#d99a00]">기준 지침이 바뀌어 승인할 수 없습니다. 반려 후 다시 검토해 주세요.</span>
+      <button id="btnApprove" disabled class="cursor-not-allowed rounded-[14px] bg-brand px-9 py-3 text-[27px] font-semibold text-white opacity-30">승인</button>
+      <button id="btnReject" class="rounded-[14px] bg-ink px-9 py-3 text-[27px] font-semibold text-white hover:opacity-90">반려</button>`;
+  }
   return `
     <span class="mr-2 text-[23px] font-medium text-ink/70">해당 개정 제안과 수정에 동의하시나요?</span>
     <button id="btnApprove" class="rounded-[14px] bg-brand px-9 py-3 text-[27px] font-semibold text-white hover:opacity-90">승인</button>
@@ -447,8 +454,22 @@ async function postJson(path, payload) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  return res.json().catch(() => ({}));
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.ok === false) {
+    // 서버가 보낸 안내 문구(예: 기준 버전이 바뀜, 권한 없음)를 그대로 보여준다
+    throw Object.assign(new Error(data.message || ('HTTP ' + res.status)), { status: res.status });
+  }
+  return data;
+}
+
+/* 이미 처리됐거나 기준이 바뀐 건(403/409)이면 서버 기준으로 목록을 다시 불러온다 */
+async function refreshIfStale(e) {
+  if (e && (e.status === 403 || e.status === 409)) {
+    state.selectedKind = null; state.selectedId = null; state.rejecting = false;
+    document.getElementById('layout')?.classList.remove('detail-open');
+    const d = document.getElementById('detailWrap'); if (d) d.innerHTML = '';
+    try { await init(); } catch (_) {}
+  }
 }
 
 async function approve() {
@@ -466,6 +487,7 @@ async function approve() {
     removeSelected();
   } catch (e) {
     alert('승인 처리에 실패했습니다: ' + e.message);
+    refreshIfStale(e);
     if (btn) { btn.disabled = false; btn.textContent = '승인'; }
   }
 }
@@ -491,6 +513,7 @@ async function submitReject() {
     removeSelected();
   } catch (e) {
     alert('반려 처리에 실패했습니다: ' + e.message);
+    refreshIfStale(e);
     if (btn) { btn.disabled = false; btn.textContent = '반려 제출'; }
   }
 }
@@ -508,6 +531,7 @@ async function confirmTech() {
     removeSelected();
   } catch (e) {
     alert('확인 처리에 실패했습니다: ' + e.message);
+    refreshIfStale(e);
     if (btn) { btn.disabled = false; btn.textContent = '확인'; }
   }
 }
