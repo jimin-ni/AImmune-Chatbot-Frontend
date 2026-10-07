@@ -148,6 +148,28 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.removeItem('joy_session_id');
   }
   
+  // 다크 모드: <html class="dark">를 토글하고 선택을 기억한다 (index.html 전용)
+  const btnTheme = document.getElementById('btn-theme');
+  function syncThemeButton() {
+    if (!btnTheme) return;
+    const dark = document.documentElement.classList.contains('dark');
+    btnTheme.setAttribute('aria-pressed', String(dark));
+    const label = dark ? '라이트 모드' : '다크모드';
+    btnTheme.title = label;
+    btnTheme.setAttribute('aria-label', label);
+  }
+  syncThemeButton();
+  if (btnTheme) {
+    btnTheme.addEventListener('click', () => {
+      const root = document.documentElement;
+      root.classList.add('theme-anim');
+      const dark = root.classList.toggle('dark');
+      try { localStorage.setItem('joy_theme', dark ? 'dark' : 'light'); } catch (e) {}
+      syncThemeButton();
+      setTimeout(() => root.classList.remove('theme-anim'), 350);
+    });
+  }
+
   // 초기화 버튼: 챗봇에 '/' + Enter를 입력한 것과 같게 동작한다 (세션 초기화는 n8n이 처리).
   // 성공하면 '/'와 응답까지 지우고 홈 화면으로 돌아간다.
   btnReset.addEventListener('click', () => handleSend('/', { homeOnSuccess: true }));
