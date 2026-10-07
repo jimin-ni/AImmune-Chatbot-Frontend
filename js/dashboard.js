@@ -592,3 +592,8 @@ document.getElementById('btnHistory')?.addEventListener('click', () => {
 document.getElementById('btnHome')?.addEventListener('click', () => {
   window.location.href = '/dashboard.html';
 });
+
+// 설정 버튼 → 처음 화면(챗봇)
+document.getElementById('btnSettings')?.addEventListener('click', () => {
+  window.location.href = 'https://aimmune-chatbot-frontend-production.up.railway.app/';
+});
