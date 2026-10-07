@@ -46,5 +46,7 @@ html.dark #chat-container::-webkit-scrollbar-thumb { background-color: #3a4050; 
 /* ---- 로고 ---- */
 /* kt m&s: 검정 글자를 흰색으로 (빨강은 유지되도록 색조 회전) */
 html.dark header img[alt="kt m&s"] { filter: invert(1) hue-rotate(180deg); }
-/* NEXUS: 흰 배경이 있는 이미지라 반전하면 검은 상자가 됨 → 그대로 두고 모서리만 둥글게 해서 흰 배지처럼 */
-html.dark header img[alt="NEXUS"] { border-radius: 16px; }
+/* NEXUS: 다크모드에서는 nexus4.png로 교체 (라운드/배경/패딩 없음, 크기는 낮 모드와 동일) */
+.nexus-night { display: none; }
+html.dark .nexus-night { display: block; }
+html.dark .nexus-day { display: none; }
