@@ -1,7 +1,7 @@
 /* =========================================================================
  * A-IMMUNE 관리자 대시보드
- * - 진행 대기 목록(지침 개정) + 기술 문제(TECH) 확인
- * - 데이터: n8n webhook (WF-04 조회, WF-02 승인/반려, WF-04 기술확인)
+ * - 진행 대기 목록(지침 개정) + 기술 문제(TECH) 확인 + 수동검토(MANUAL)
+ * - 데이터: n8n webhook (WF-04 조회·기술확인·수동검토, WF-02 승인/반려)
  * ========================================================================= */
 
 /* ---------------------------------------------------------------------------
@@ -12,6 +12,7 @@ const CONFIG = {
   PENDING_PATH: '/webhook/a-immune-admin-pending',      // WF-04 조회
   DECISION_PATH: '/webhook/a-immune-revision-decision',  // WF-02 승인/반려
   TECH_CONFIRM_PATH: '/webhook/a-immune-tech-confirm',   // WF-04 기술 문제 확인
+  MANUAL_REVIEW_PATH: '/webhook/a-immune-manual-review', // WF-04 수동검토 처리
   MANAGER_ID: window.AIMMUNE_MANAGER?.get() ?? 'M-001',   // 현재 담당자 (화면 왼쪽 '관리자 아이디'에서 선택)
   USE_SAMPLE_ON_FAIL: false, // true면 연결 실패 시 샘플 데이터 표시
 };
@@ -22,9 +23,12 @@ const CONFIG = {
 const state = {
   items: [],          // 지침 개정 대기 (type GUIDELINE_REVISION)
   techItems: [],      // 기술 문제 (type TECH)
-  selectedKind: null, // 'REVISION' | 'TECH'
+  manualItems: [],    // 수동검토 (type MANUAL)
+  guidelines: [],     // 수동검토에서 고를 수 있는 '현재' 지침 (versionId 포함)
+  selectedKind: null, // 'REVISION' | 'TECH' | 'MANUAL'
   selectedId: null,   // revisionId 또는 reportId
   rejecting: false,   // 반려 사유 입력 모드
+  manualDraft: null,  // 수동검토 입력 중인 값 {reportId, mode, guidelineItemId, before, after, reason}
 };
 
 /* ---------------------------------------------------------------------------
@@ -119,28 +123,24 @@ async function fetchPending() {
  * ------------------------------------------------------------------------- */
 function renderList() {
   const wrap = document.getElementById('listWrap');
-  const hasAny = state.items.length || state.techItems.length;
+  const groups = [
+    { label: '지침 개정 대기', list: sortByRisk(state.items), card: renderRevisionCard },
+    { label: '수동검토', list: state.manualItems, card: renderManualCard },
+    { label: '기술 문제', list: sortByRisk(state.techItems), card: renderTechCard },
+  ].filter(g => g.list.length);
 
-  if (!hasAny) {
+  if (!groups.length) {
     wrap.innerHTML = `<div class="py-16 text-center text-muted">진행 대기 중인 항목이 없습니다.</div>`;
     return;
   }
 
-  let html = '';
-
-  // 지침 개정 대기
-  if (state.items.length) {
-    if (state.techItems.length) {
-      html += `<div class="mb-1 mt-1 px-1 text-[15px] font-semibold text-ink/50">지침 개정 대기 (${state.items.length})</div>`;
-    }
-    html += sortByRisk(state.items).map(renderRevisionCard).join('');
-  }
-
-  // 기술 문제 (별도 영역)
-  if (state.techItems.length) {
-    html += `<div class="mb-1 mt-4 px-1 text-[15px] font-semibold text-ink/50">기술 문제 (${state.techItems.length})</div>`;
-    html += sortByRisk(state.techItems).map(renderTechCard).join('');
-  }
+  // 항목 종류가 둘 이상일 때만 구역 제목을 붙인다
+  const html = groups.map((g, i) => {
+    const head = groups.length > 1
+      ? `<div class="mb-1 ${i ? 'mt-4' : 'mt-1'} px-1 text-[15px] font-semibold text-ink/50">${g.label} (${g.list.length})</div>`
+      : '';
+    return head + g.list.map(g.card).join('');
+  }).join('');
 
   wrap.innerHTML = html;
 
@@ -196,6 +196,30 @@ function renderTechCard(t) {
     </button>`;
 }
 
+/* 수동검토 카드 */
+const RE_REVIEW = '개정안 반려 - 재검토 필요';
+function renderManualCard(m) {
+  const active = state.selectedKind === 'MANUAL' && m.reportId === state.selectedId;
+  const rereview = m.resolution === RE_REVIEW;
+  return `
+    <button data-kind="MANUAL" data-id="${esc(m.reportId)}"
+      class="card-item w-full rounded-[20px] bg-white p-6 text-left shadow-card transition
+             ${active ? 'ring-2 ring-ink bg-[#fafafa]' : 'hover:bg-[#fafafa]'}">
+      <div class="mb-5 flex items-center justify-between">
+        <span class="inline-flex items-center whitespace-nowrap rounded-[18px] bg-ink px-4 py-1.5 text-[20px] font-medium text-white">수동검토</span>
+        <span class="whitespace-nowrap text-[20px] text-muted">${esc(m.createdAt || '')}</span>
+      </div>
+      <div class="mb-1.5 text-[28px] font-semibold [text-wrap:balance]">${esc(m.complaintType || '수동검토')}</div>
+      <p class="mb-5 line-clamp-1 text-[22px] text-ink/70">${esc(m.issueRequest || m.resolution || '')}</p>
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="inline-flex items-center gap-2 rounded-[18px] bg-canvas px-4 py-1.5 text-[20px] font-medium">
+          AGENT <span>${esc(m.agentId || m.agentName || '-')}</span>
+        </span>
+        ${rereview ? '<span class="inline-flex items-center whitespace-nowrap rounded-[18px] bg-[#fff6f4] px-4 py-1.5 text-[20px] font-medium text-salmon">반려 후 재검토</span>' : ''}
+      </div>
+    </button>`;
+}
+
 /* ---------------------------------------------------------------------------
  * 5. 상세 열기 / 렌더
  * ------------------------------------------------------------------------- */
@@ -203,12 +227,16 @@ function selectItem(kind, id) {
   state.selectedKind = kind;
   state.selectedId = id;
   state.rejecting = false;
+  state.manualDraft = null;
   document.getElementById('layout').classList.add('detail-open');
   renderList();
   renderDetail();
 }
 
 function getSelected() {
+  if (state.selectedKind === 'MANUAL') {
+    return state.manualItems.find(m => m.reportId === state.selectedId) || null;
+  }
   if (state.selectedKind === 'TECH') {
     return state.techItems.find(t => t.reportId === state.selectedId) || null;
   }
@@ -222,8 +250,9 @@ function renderDetail() {
 
   // 상세 패널 제목 전환
   const h = document.querySelector('#detailCol h2');
-  if (h) h.textContent = state.selectedKind === 'TECH' ? '기술 문제 확인' : '지침서 개정 승인';
+  if (h) h.textContent = { TECH: '기술 문제 확인', MANUAL: '수동검토' }[state.selectedKind] || '지침서 개정 승인';
 
+  if (state.selectedKind === 'MANUAL') { renderManualDetail(item); return; }
   if (state.selectedKind === 'TECH') { renderTechDetail(item); return; }
   renderRevisionDetail(item);
 }
@@ -406,6 +435,208 @@ function renderTechDetail(t) {
   document.getElementById('btnConfirmTech')?.addEventListener('click', confirmTech);
 }
 
+/* ---------------------------------------------------------------------------
+ * 수동검토 상세 — 신고 내용 확인 후 ① 지침 수정안 제출 ② 변경 없이 완료 ③ 메모 저장
+ * ------------------------------------------------------------------------- */
+const MANUAL_MODES = {
+  SUBMIT_REVISION:   { tab: '지침 수정안 제출', desc: '현재 지침의 한 구간을 고쳐 개정안으로 제출합니다. 제출하면 \'지침 개정 대기\'에 올라가 승인·반려를 거칩니다.',
+                       prompt: '이 수정안을 제출할까요?', btn: '수정안 제출', cls: 'bg-brand text-white' },
+  COMPLETE_NO_CHANGE:{ tab: '변경 없이 완료', desc: '지침을 바꾸지 않고 검토를 끝냅니다. 신고는 처리완료로 바뀌고 신고자에게 결과가 안내됩니다.',
+                       prompt: '지침 변경 없이 검토를 완료할까요?', btn: '검토 완료', cls: 'bg-ink text-white' },
+  SAVE_NOTE:         { tab: '메모 저장', desc: '검토 메모만 남깁니다. 신고는 수동검토 목록에 계속 남아 있습니다.',
+                       prompt: '검토 메모를 저장할까요?', btn: '메모 저장', cls: 'bg-canvas text-ink/70 hover:bg-[#ececec]' },
+};
+
+/* 이 신고의 에이전트에 해당하는 '현재' 지침 목록 */
+function manualGuidelines(m) {
+  return state.guidelines.filter(g => g.agentId === m.agentId);
+}
+
+/* 서버 검증과 같은 기준: 겹치는 위치까지 센다 */
+function countOccurrences(text, part) {
+  if (!part) return 0;
+  let n = 0, i = -1;
+  while ((i = text.indexOf(part, i + 1)) >= 0) n++;
+  return n;
+}
+
+function ensureManualDraft(m) {
+  if (state.manualDraft && state.manualDraft.reportId === m.reportId) return state.manualDraft;
+  const gl = manualGuidelines(m);
+  const preset = gl.find(g => g.guidelineItemId === m.guidelineItemId) || gl[0] || null;
+  state.manualDraft = {
+    reportId: m.reportId,
+    mode: gl.length ? 'SUBMIT_REVISION' : 'COMPLETE_NO_CHANGE',
+    guidelineItemId: preset ? preset.guidelineItemId : '',
+    before: '', after: '', reason: '',
+  };
+  return state.manualDraft;
+}
+
+/* 화면을 다시 그리기 전에 입력칸의 값을 draft에 옮겨 둔다 */
+function syncManualDraft() {
+  const d = state.manualDraft;
+  if (!d) return;
+  const v = (id) => document.getElementById(id)?.value;
+  if (v('mrGuideline') !== undefined) d.guidelineItemId = v('mrGuideline');
+  if (v('mrBefore') !== undefined) d.before = v('mrBefore');
+  if (v('mrAfter') !== undefined) d.after = v('mrAfter');
+  if (v('mrReason') !== undefined) d.reason = v('mrReason');
+}
+
+function renderManualDetail(m) {
+  const box = document.getElementById('detailWrap');
+  const d = ensureManualDraft(m);
+  const gl = manualGuidelines(m);
+  const cur = gl.find(g => g.guidelineItemId === d.guidelineItemId) || null;
+  const mode = MANUAL_MODES[d.mode];
+  const rereview = m.resolution === RE_REVIEW;
+
+  const reportBlock = (label, text) => text
+    ? `<div class="rounded-[16px] bg-canvas p-5">
+         <div class="mb-2 text-[22px] font-medium text-ink/60">${label}</div>
+         <p class="whitespace-pre-wrap text-[23px] leading-relaxed">${esc(text)}</p>
+       </div>` : '';
+  const inputCls = 'w-full resize-none rounded-[16px] bg-canvas p-5 text-[23px] leading-relaxed outline-none focus:ring-2 focus:ring-salmon';
+  const label = (t, sub) => `<div class="mb-2 flex items-baseline gap-3"><span class="text-[23px] font-semibold">${t}</span>${sub ? `<span class="text-[20px] text-ink/50">${sub}</span>` : ''}</div>`;
+
+  const revisionForm = !gl.length
+    ? `<p class="rounded-[16px] bg-canvas p-5 text-[22px] text-ink/70">이 에이전트에서 고를 수 있는 현재 지침이 없습니다.</p>`
+    : `
+      <div class="space-y-6">
+        <div>
+          ${label('수정할 지침')}
+          <select id="mrGuideline" class="w-full cursor-pointer rounded-[16px] bg-canvas p-4 text-[23px] outline-none focus:ring-2 focus:ring-salmon">
+            ${gl.map(g => `<option value="${esc(g.guidelineItemId)}" ${g.guidelineItemId === d.guidelineItemId ? 'selected' : ''}>${esc(g.guidelineItemId)} · v${esc(g.versionNumber)}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <div class="mb-2 flex items-center justify-between">
+            ${label('현재 지침 원문', '고칠 구간을 드래그로 선택하세요')}
+            <button id="mrPick" type="button" class="rounded-[14px] bg-ink px-5 py-2 text-[21px] font-semibold text-white hover:opacity-90">선택한 구간 가져오기</button>
+          </div>
+          <div id="mrCurrent" class="max-h-[320px] select-text overflow-y-auto whitespace-pre-wrap rounded-[16px] bg-canvas p-5 text-[22px] leading-relaxed">${esc(cur?.content || '')}</div>
+        </div>
+        <div class="flex items-stretch gap-4">
+          <div class="flex-1">
+            ${label('수정 전 구간', '원문 그대로')}
+            <textarea id="mrBefore" rows="4" class="${inputCls}">${esc(d.before)}</textarea>
+            <div id="mrBeforeHint" class="mt-2 min-h-[30px] text-[20px]"></div>
+          </div>
+          <div class="flex items-center pb-8 text-[31px] text-muted">→</div>
+          <div class="flex-1">
+            ${label('수정 후 구간')}
+            <textarea id="mrAfter" rows="4" class="${inputCls}">${esc(d.after)}</textarea>
+          </div>
+        </div>
+      </div>`;
+
+  box.innerHTML = `
+    <div class="flex items-start justify-between">
+      <div class="flex flex-wrap items-center gap-3">
+        <h3 class="text-[35px] font-semibold">${esc(m.complaintType || '수동검토')}</h3>
+        <span class="inline-flex items-center rounded-[14px] bg-ink px-3 py-1 text-[22px] font-medium text-white">수동검토</span>
+        ${rereview ? '<span class="inline-flex items-center rounded-[14px] bg-[#fff6f4] px-3 py-1 text-[22px] font-medium text-salmon">반려 후 재검토</span>' : ''}
+        <span class="inline-flex items-center gap-2 rounded-[14px] bg-canvas px-3 py-1 text-[22px] font-medium">
+          AGENT <span>${esc(m.agentId || m.agentName || '-')}</span>
+        </span>
+      </div>
+      <div class="text-right text-[21px] text-muted">
+        <div>요청일: ${esc(m.createdAt || '')}</div>
+        <div>사건 발생일: ${esc(m.occurredAt || '-')}</div>
+        <div>신고번호: ${esc(m.reportId || '')}</div>
+      </div>
+    </div>
+
+    <section class="mt-8">
+      <h4 class="mb-3 text-[27px] font-semibold">신고 내용</h4>
+      <div class="space-y-3">
+        ${reportBlock('사용자 질문', m.userPrompt)}
+        ${reportBlock('AI 응답', m.agentResponse)}
+        ${reportBlock('문제 / 요청', m.issueRequest)}
+        ${(!m.userPrompt && !m.agentResponse && !m.issueRequest) ? '<p class="text-[23px] text-muted">신고 상세 내용이 없습니다.</p>' : ''}
+      </div>
+    </section>
+
+    <section class="mt-8">
+      <h4 class="mb-4 text-[27px] font-semibold">검토 정보</h4>
+      <div class="space-y-3 text-[23px]">
+        <div class="flex gap-6"><span class="w-48 shrink-0 text-ink/60">검토 사유</span><span>${esc(m.resolution || '-')}</span></div>
+        ${m.reasonCode ? `<div class="flex gap-6"><span class="w-48 shrink-0 text-ink/60">분석 결과</span><span>${esc(m.reasonCode)}</span></div>` : ''}
+        ${m.guidelineItemId ? `<div class="flex gap-6"><span class="w-48 shrink-0 text-ink/60">관련 지침</span><span>${esc(m.guidelineItemId)}</span></div>` : ''}
+      </div>
+    </section>
+
+    <section class="mt-8">
+      <h4 class="mb-3 text-[27px] font-semibold">처리 방법</h4>
+      <div class="mb-3 flex flex-wrap gap-3">
+        ${Object.entries(MANUAL_MODES).map(([k, v]) => `
+          <button type="button" data-mode="${k}"
+            class="mr-tab rounded-[14px] px-6 py-3 text-[23px] font-semibold ${k === d.mode ? 'bg-ink text-white' : 'bg-canvas text-ink/70 hover:bg-[#ececec]'}">${v.tab}</button>`).join('')}
+      </div>
+      <p class="mb-6 text-[21px] leading-relaxed text-ink/60">${mode.desc}</p>
+      ${d.mode === 'SUBMIT_REVISION' ? revisionForm : ''}
+      <div class="${d.mode === 'SUBMIT_REVISION' ? 'mt-6' : ''}">
+        ${label(d.mode === 'SUBMIT_REVISION' ? '수정 사유' : '검토 내용', '필수 · 1000자 이내')}
+        <textarea id="mrReason" rows="3" maxlength="1000" class="${inputCls}"
+          placeholder="${d.mode === 'SUBMIT_REVISION' ? '왜 이렇게 고치는지 적어 주세요.' : '검토한 내용을 적어 주세요.'}">${esc(d.reason)}</textarea>
+      </div>
+    </section>
+
+    <div class="sticky bottom-4 mt-10 flex justify-center">
+      <div class="flex items-center gap-4 rounded-[20px] bg-white px-6 py-4 shadow-[0_4px_24px_rgba(0,0,0,0.12)]">
+        <span class="mr-2 text-[23px] font-medium text-ink/70">${mode.prompt}</span>
+        <button id="btnManualSubmit" class="rounded-[14px] ${mode.cls} px-9 py-3 text-[27px] font-semibold hover:opacity-90">${mode.btn}</button>
+      </div>
+    </div>
+  `;
+  bindManualActions(m);
+  updateBeforeHint();
+}
+
+/* '수정 전 구간'이 현재 원문에 정확히 한 번 있는지 바로 알려 준다 */
+function updateBeforeHint() {
+  const hint = document.getElementById('mrBeforeHint');
+  const m = getSelected();
+  if (!hint || !m) return;
+  const d = state.manualDraft;
+  const cur = manualGuidelines(m).find(g => g.guidelineItemId === (document.getElementById('mrGuideline')?.value || d.guidelineItemId));
+  const before = document.getElementById('mrBefore')?.value ?? '';
+  if (!before) { hint.className = 'mt-2 min-h-[30px] text-[20px] text-ink/50'; hint.textContent = '원문에서 구간을 선택해 가져오거나 그대로 붙여 넣으세요.'; return; }
+  const n = countOccurrences(cur?.content ?? '', before);
+  if (n === 1) { hint.className = 'mt-2 min-h-[30px] text-[20px] font-medium text-approve'; hint.textContent = '원문에서 정확히 1곳 일치합니다.'; }
+  else if (n === 0) { hint.className = 'mt-2 min-h-[30px] text-[20px] font-medium text-[#e10412]'; hint.textContent = '현재 원문에서 찾을 수 없습니다. 글자와 띄어쓰기가 원문과 같아야 합니다.'; }
+  else { hint.className = 'mt-2 min-h-[30px] text-[20px] font-medium text-[#e10412]'; hint.textContent = `원문에 ${n}곳 있습니다. 한 곳만 가리키도록 더 길게 선택해 주세요.`; }
+}
+
+function bindManualActions(m) {
+  const $ = (id) => document.getElementById(id);
+  document.querySelectorAll('.mr-tab').forEach(b => b.addEventListener('click', () => {
+    syncManualDraft();
+    state.manualDraft.mode = b.dataset.mode;
+    renderManualDetail(m);
+  }));
+  $('mrGuideline')?.addEventListener('change', () => {
+    syncManualDraft();
+    state.manualDraft.before = ''; state.manualDraft.after = ''; // 다른 지침이면 구간이 달라진다
+    renderManualDetail(m);
+  });
+  $('mrBefore')?.addEventListener('input', updateBeforeHint);
+  // 버튼을 눌러도 드래그한 선택이 풀리지 않게 한다
+  $('mrPick')?.addEventListener('mousedown', (e) => e.preventDefault());
+  $('mrPick')?.addEventListener('click', () => {
+    const src = $('mrCurrent');
+    const sel = window.getSelection();
+    const text = sel && sel.rangeCount && src.contains(sel.anchorNode) && src.contains(sel.focusNode) ? sel.toString() : '';
+    if (!text) { alert('아래 \'현재 지침 원문\'에서 고칠 구간을 드래그로 선택한 뒤 눌러 주세요.'); return; }
+    $('mrBefore').value = text;
+    if (!$('mrAfter').value) $('mrAfter').value = text; // 고치기 쉽게 같은 글을 먼저 채워 둔다
+    updateBeforeHint();
+    $('mrAfter').focus();
+  });
+  $('btnManualSubmit')?.addEventListener('click', submitManual);
+}
+
 /* 지침 개정 액션 버튼 */
 function renderActionButtons() {
   if (state.rejecting) {
@@ -463,13 +694,14 @@ async function postJson(path, payload) {
 }
 
 /* 이미 처리됐거나 기준이 바뀐 건(403/409)이면 서버 기준으로 목록을 다시 불러온다 */
+async function reloadAll() {
+  state.selectedKind = null; state.selectedId = null; state.rejecting = false; state.manualDraft = null;
+  document.getElementById('layout')?.classList.remove('detail-open');
+  const d = document.getElementById('detailWrap'); if (d) d.innerHTML = '';
+  try { await init(); } catch (_) {}
+}
 async function refreshIfStale(e) {
-  if (e && (e.status === 403 || e.status === 409)) {
-    state.selectedKind = null; state.selectedId = null; state.rejecting = false;
-    document.getElementById('layout')?.classList.remove('detail-open');
-    const d = document.getElementById('detailWrap'); if (d) d.innerHTML = '';
-    try { await init(); } catch (_) {}
-  }
+  if (e && (e.status === 403 || e.status === 409)) await reloadAll();
 }
 
 async function approve() {
@@ -536,9 +768,62 @@ async function confirmTech() {
   }
 }
 
+/* 수동검토 처리 — SUBMIT_REVISION / COMPLETE_NO_CHANGE / SAVE_NOTE */
+async function submitManual() {
+  const m = getSelected();
+  if (!m) return;
+  syncManualDraft();
+  const d = state.manualDraft;
+  const reason = d.reason.trim();
+  if (!reason) {
+    alert(d.mode === 'SUBMIT_REVISION' ? '수정 사유를 입력해 주세요.' : '검토 내용을 입력해 주세요.');
+    document.getElementById('mrReason')?.focus();
+    return;
+  }
+
+  const payload = { reportId: m.reportId, managerId: CONFIG.MANAGER_ID, action: d.mode, reason };
+  if (d.mode === 'SUBMIT_REVISION') {
+    const g = manualGuidelines(m).find(x => x.guidelineItemId === d.guidelineItemId);
+    if (!g) { alert('수정할 지침을 선택해 주세요.'); return; }
+    if (!d.before.trim() || !d.after.trim()) { alert('수정 전 구간과 수정 후 구간을 모두 입력해 주세요.'); return; }
+    if (d.before === d.after) { alert('수정 전과 수정 후가 같습니다. 실제로 바뀌는 내용을 입력해 주세요.'); return; }
+    const n = countOccurrences(g.content ?? '', d.before);
+    if (n !== 1) { alert(n ? `수정 전 구간이 원문에 ${n}곳 있습니다. 한 곳만 가리키도록 더 길게 선택해 주세요.` : '수정 전 구간을 현재 지침 원문에서 찾을 수 없습니다.'); return; }
+    Object.assign(payload, {
+      guidelineItemId: g.guidelineItemId,
+      baseVersionId: g.versionId,       // 지침이 그 사이 바뀌었는지 서버가 이 값으로 확인한다
+      beforeSentence: d.before,
+      afterSentence: d.after,
+    });
+  } else if (d.mode === 'COMPLETE_NO_CHANGE' && !confirm('지침을 바꾸지 않고 이 신고를 처리완료합니다. 신고자에게 결과가 안내됩니다. 계속할까요?')) {
+    return;
+  }
+
+  const btn = document.getElementById('btnManualSubmit');
+  const label = btn?.textContent;
+  if (btn) { btn.disabled = true; btn.textContent = '처리 중…'; }
+  try {
+    const data = await postJson(CONFIG.MANUAL_REVIEW_PATH, payload);
+    if (d.mode === 'SAVE_NOTE') {
+      alert(data.message || '검토 메모를 저장했습니다.');
+      state.manualDraft.reason = '';
+      renderManualDetail(m);
+    } else {
+      alert(data.message || '처리했습니다.');
+      await reloadAll(); // 새 개정안이 '지침 개정 대기'에 올라오거나, 완료된 신고가 목록에서 빠진다
+    }
+  } catch (e) {
+    alert('수동검토 처리에 실패했습니다: ' + e.message);
+    refreshIfStale(e);
+    if (btn) { btn.disabled = false; btn.textContent = label; }
+  }
+}
+
 /* 현재 선택 항목을 목록에서 제거하고 상세 닫기 */
 function removeSelected() {
-  if (state.selectedKind === 'TECH') {
+  if (state.selectedKind === 'MANUAL') {
+    state.manualItems = state.manualItems.filter(m => m.reportId !== state.selectedId);
+  } else if (state.selectedKind === 'TECH') {
     state.techItems = state.techItems.filter(t => t.reportId !== state.selectedId);
   } else {
     state.items = state.items.filter(i => i.revisionId !== state.selectedId);
@@ -546,6 +831,7 @@ function removeSelected() {
   state.selectedKind = null;
   state.selectedId = null;
   state.rejecting = false;
+  state.manualDraft = null;
   document.getElementById('layout').classList.remove('detail-open');
   document.getElementById('detailWrap').innerHTML = '';
   renderList();
@@ -566,7 +852,10 @@ async function init() {
     const data = await fetchPending();
     state.items = Array.isArray(data.items) ? data.items : [];
     state.techItems = Array.isArray(data.techItems) ? data.techItems : [];
+    state.manualItems = Array.isArray(data.manualItems) ? data.manualItems : [];
+    state.guidelines = Array.isArray(data.guidelines) ? data.guidelines : [];
     if (data.techConfirmApi && data.techConfirmApi.path) CONFIG.TECH_CONFIRM_PATH = data.techConfirmApi.path;
+    if (data.manualReviewApi && data.manualReviewApi.path) CONFIG.MANUAL_REVIEW_PATH = data.manualReviewApi.path;
     renderList();
   } catch (e) {
     console.error('[A-IMMUNE] 조회 실패:', e);
