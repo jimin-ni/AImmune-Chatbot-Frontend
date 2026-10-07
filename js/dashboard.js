@@ -392,7 +392,7 @@ function renderTechDetail(t) {
     </section>
 
     <div class="mt-6 rounded-[16px] bg-[#fff7e2] p-4 text-[14px] leading-relaxed text-ink/70">
-      기술 문제는 지침 개정 대상이 아닙니다. <b>확인</b> 시 관리자 대기 목록에서만 제외되며, 장애 해결을 의미하지 않습니다. (원본 신고·이력은 보존)
+      문제를 확인하고 필요한 조치를 완료한 뒤 <b>확인</b>을 눌러 주세요. 확인하면 조치 완료 기록을 저장하고 신고자에게 결과를 안내합니다.    
     </div>
 
     <div class="sticky bottom-4 mt-10 flex justify-center">
