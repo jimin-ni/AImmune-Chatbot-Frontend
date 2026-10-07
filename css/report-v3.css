@@ -47,6 +47,7 @@ button, input, textarea { font: inherit; color: inherit; }
   padding: 20px clamp(16px, 4vw, 48px);
 }
 .top img { display: block; height: 24px; }
+.logo-link { display: inline-flex; }
 .back {
   display: inline-flex;
   align-items: center;

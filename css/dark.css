@@ -46,5 +46,10 @@ html.dark #chat-container::-webkit-scrollbar-thumb { background-color: #3a4050; 
 /* ---- 로고 ---- */
 /* kt m&s: 검정 글자를 흰색으로 (빨강은 유지되도록 색조 회전) */
 html.dark header img[alt="kt m&s"] { filter: invert(1) hue-rotate(180deg); }
-/* NEXUS: 흰 배경이 있는 이미지라 반전하면 검은 상자가 됨 → 그대로 두고 모서리만 둥글게 해서 흰 배지처럼 */
-html.dark header img[alt="NEXUS"] { border-radius: 16px; }
+/* NEXUS: 흰 배경이 있는 이미지라 반전하면 검은 상자가 됨 → 그대로 두고 여백 있는 흰 배지로(이미지는 잘리지 않음) */
+html.dark header img[alt="NEXUS"] {
+  /* 이미지 자체를 둥글게 자르지 않고, 안쪽 여백이 있는 흰 배지 안에 통째로 넣음 */
+  background: #fff;
+  padding: 4px 8px;
+  border-radius: 14px;
+}
