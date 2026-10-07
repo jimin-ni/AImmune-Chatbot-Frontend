@@ -1,0 +1,7 @@
+/* 한글 줄바꿈 공통 규칙 — 어절(띄어쓰기) 중간에서 끊기지 않게 한다 */
+html {
+  word-break: keep-all;        /* "누락"처럼 한 단어가 줄 끝에서 쪼개지지 않음 */
+  overflow-wrap: break-word;   /* 띄어쓰기 없는 아주 긴 문자열(URL 등)은 넘치지 않게 안전망 */
+}
+h1, h2, h3, h4 { text-wrap: balance; }   /* 2~3줄 제목은 줄 길이를 고르게 */
+p, li { text-wrap: pretty; }             /* 마지막 줄에 한두 글자만 남는 것을 줄임 (지원 브라우저만) */

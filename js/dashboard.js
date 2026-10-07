@@ -153,7 +153,7 @@ function renderRevisionCard(item) {
         </span>
         <span class="text-[20px] text-muted">${esc(item.createdAt || '')}</span>
       </div>
-      <div class="mb-1.5 text-[28px] font-semibold">${title}</div>
+      <div class="mb-1.5 text-[28px] font-semibold [text-wrap:balance]">${title}</div>
       <p class="mb-5 line-clamp-1 text-[22px] text-ink/70">${esc(item.change?.reason || '')}</p>
       <span class="inline-flex items-center gap-2 rounded-[18px] bg-canvas px-4 py-1.5 text-[20px] font-medium">
         AGENT <span>${esc(item.agentId || '-')}</span>
@@ -174,7 +174,7 @@ function renderTechCard(t) {
         <span class="inline-flex items-center rounded-[18px] bg-[#eaf8ff] px-4 py-1.5 text-[20px] font-medium text-[#25a0e2]">기술 문제</span>
         <span class="text-[20px] text-muted">${esc(t.createdAt || '')}</span>
       </div>
-      <div class="mb-1.5 text-[28px] font-semibold">${title}</div>
+      <div class="mb-1.5 text-[28px] font-semibold [text-wrap:balance]">${title}</div>
       <p class="mb-5 line-clamp-1 text-[22px] text-ink/70">${esc(t.issueRequest || t.classificationReason || '')}</p>
       <div class="flex items-center gap-2">
         <span class="inline-flex items-center gap-2 rounded-[18px] bg-canvas px-4 py-1.5 text-[20px] font-medium">
