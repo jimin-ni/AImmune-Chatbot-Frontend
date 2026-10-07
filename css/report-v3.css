@@ -14,8 +14,9 @@
   --rose: #c9254b;
   --white: #fff;
   --r: 14px;
-  --font-q: 'Gowun Dodum', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-  --font-ui: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+  /* 전부 Inter. Inter에는 한글이 없어 한글 글자만 아래 순서의 글꼴이 대신한다 (대시보드와 같은 방식) */
+  --font-ui: 'Inter', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif;
+  --font-q: var(--font-ui);
 }
 
 * { box-sizing: border-box; }
@@ -47,12 +48,14 @@ button, input, textarea { font: inherit; color: inherit; }
 }
 .top img { display: block; height: 24px; }
 .back {
+  display: inline-flex;
+  align-items: center;
   padding: 8px 4px;
   border-radius: 8px;
   color: var(--slate);
-  font-size: 15px;
   text-decoration: none;
 }
+.back svg { display: block; width: calc(24px * .8); height: calc(24px * .8); }   /* kt m&s 로고(높이 24px)보다 20% 작게 */
 .back:hover { color: var(--ink); }
 
 /* ---------- 본문 2단 ---------- */
@@ -130,7 +133,7 @@ button, input, textarea { font: inherit; color: inherit; }
   border: 1.5px solid var(--line);
   border-radius: 18px;
   box-shadow: 0 8px 24px rgba(29, 35, 64, .12);
-  font: 500 15.5px/1.55 'Noto Sans KR', sans-serif;
+  font: 500 15.5px/1.55 var(--font-ui);
   text-align: center;
   word-break: keep-all;
   transform: translateX(-50%);
@@ -316,17 +319,20 @@ textarea.field { min-height: 156px; resize: vertical; line-height: 1.6; }
 
 /* ---------- 이동 버튼 ---------- */
 .nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; }
-.btn-back {
+.btn-back {                          /* '다음' 버튼과 같은 크기, 테두리만 있는 버튼 */
+  min-width: 132px;
   min-height: 52px;
-  padding: 0 16px;
-  border: 0;
+  padding: 0 28px;
+  border: 1.5px solid var(--line);
   border-radius: var(--r);
   background: none;
   color: var(--slate);
-  font-size: 16px;
+  font-size: 17px;
+  font-weight: 500;
   cursor: pointer;
+  transition: border-color .15s, color .15s;
 }
-.btn-back:hover { color: var(--ink); }
+.btn-back:hover { border-color: var(--slate); color: var(--ink); }
 .btn-next {
   min-width: 132px;
   min-height: 52px;
