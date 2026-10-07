@@ -10,9 +10,9 @@
 const CONFIG = {
   N8N_BASE_URL: 'https://blitzrattle.app.n8n.cloud',
   HISTORY_PATH: '/webhook/a-immune-admin-history', // 처리 내역 조회
-  MANAGER_ID: 'M-001',
-  USE_SAMPLE_ON_FAIL: true, // 엔드포인트 생성 전엔 샘플로 화면 확인. 연결 후 false 권장
-  TIME_OFFSET_HOURS: -6,    // 서버/DB 시각 → 표시 시각 보정 (요청: -6시간)
+  MANAGER_ID: window.AIMMUNE_MANAGER?.get() ?? 'M-001',
+  USE_SAMPLE_ON_FAIL: false, // true면 연결 실패 시 샘플 데이터 표시 (연결 후에는 false: 오류가 가짜 카드로 가려지지 않게)
+  TIME_OFFSET_HOURS: 0,     // n8n(WF-04)이 이미 한국 시각(+9h)으로 내려주므로 보정하지 않는다
 };
 
 /* ---------------------------------------------------------------------------
@@ -84,7 +84,7 @@ function normalizeItem(raw) {
  * 3. 데이터 가져오기
  * ------------------------------------------------------------------------- */
 async function fetchHistory() {
-  const url = CONFIG.N8N_BASE_URL + CONFIG.HISTORY_PATH;
+  const url = CONFIG.N8N_BASE_URL + CONFIG.HISTORY_PATH + '?managerId=' + encodeURIComponent(CONFIG.MANAGER_ID);
   console.log('[A-IMMUNE] 내역 조회 →', url);
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 15000);
