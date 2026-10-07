@@ -30,24 +30,35 @@ const state = {
 /* ---------------------------------------------------------------------------
  * 2. 뱃지 색상
  * ------------------------------------------------------------------------- */
-function priorityStyle(rank) {
-  const map = {
-    1: { text: 'text-salmon',  bg: 'bg-[#ffe6e1]' },
-    2: { text: 'text-[#ffbc0a]', bg: 'bg-[#fff7e2]' },
-    3: { text: 'text-[#25a0e2]', bg: 'bg-[#eaf8ff]' },
-  };
-  return map[rank] || { text: 'text-ink', bg: 'bg-canvas' };
-}
-
 /* 위험도 뱃지 색상 */
 function riskStyle(level) {
+  // 빨강(가장 위험) → 주황 → 노랑 → 파랑(가장 낮음)
   const map = {
-    CRITICAL: { text: 'text-[#f0322e]', bg: 'bg-[#ffe6e1]' },
-    HIGH:     { text: 'text-[#f06548]', bg: 'bg-[#ffe6e1]' },
-    MEDIUM:   { text: 'text-[#ffbc0a]', bg: 'bg-[#fff7e2]' },
+    CRITICAL: { text: 'text-white',     bg: 'bg-[#f0322e]' },
+    HIGH:     { text: 'text-[#f27a1a]', bg: 'bg-[#ffeedd]' },
+    MEDIUM:   { text: 'text-[#d99a00]', bg: 'bg-[#fff7e2]' },
     LOW:      { text: 'text-[#25a0e2]', bg: 'bg-[#eaf8ff]' },
   };
-  return map[level] || { text: 'text-ink/60', bg: 'bg-canvas' };
+  return map[String(level || '').toUpperCase()] || { text: 'text-ink/60', bg: 'bg-canvas' };
+}
+
+/* 지침 항목 표시 이름: "ID 제목". 제목이 없거나 ID와 같으면(n8n 제목표에 없는 항목) ID만 한 번 */
+function guidelineLabel(g) {
+  const id = String(g?.itemId ?? '').trim();
+  const title = String(g?.title ?? '').trim();
+  return esc(!title || title === id ? (id || title) : (id ? `${id} ${title}` : title));
+}
+
+
+/* 위험도 순서 정렬 — CRITICAL > HIGH > MEDIUM > LOW > 값 없음. 같으면 우선순위 번호(작은 쪽 먼저), 그다음 서버 순서 유지 */
+const RISK_ORDER = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+function sortByRisk(list) {
+  const key = (x) => RISK_ORDER[String(x.risk?.level || '').toUpperCase()] ?? 4;
+  const rank = (x) => Number.isFinite(Number(x.priority?.rank)) && x.priority?.rank !== null ? Number(x.priority.rank) : Infinity;
+  return [...list]
+    .map((x, i) => ({ x, i }))
+    .sort((a, b) => key(a.x) - key(b.x) || (rank(a.x) === rank(b.x) ? 0 : rank(a.x) < rank(b.x) ? -1 : 1) || a.i - b.i)
+    .map(o => o.x);
 }
 
 /* HTML 이스케이프 */
@@ -122,13 +133,13 @@ function renderList() {
     if (state.techItems.length) {
       html += `<div class="mb-1 mt-1 px-1 text-[15px] font-semibold text-ink/50">지침 개정 대기 (${state.items.length})</div>`;
     }
-    html += state.items.map(renderRevisionCard).join('');
+    html += sortByRisk(state.items).map(renderRevisionCard).join('');
   }
 
   // 기술 문제 (별도 영역)
   if (state.techItems.length) {
     html += `<div class="mb-1 mt-4 px-1 text-[15px] font-semibold text-ink/50">기술 문제 (${state.techItems.length})</div>`;
-    html += state.techItems.map(renderTechCard).join('');
+    html += sortByRisk(state.techItems).map(renderTechCard).join('');
   }
 
   wrap.innerHTML = html;
@@ -140,16 +151,16 @@ function renderList() {
 
 /* 지침 개정 카드 */
 function renderRevisionCard(item) {
-  const p = priorityStyle(item.priority?.rank);
+  const r = riskStyle(item.risk?.level);
   const active = state.selectedKind === 'REVISION' && item.revisionId === state.selectedId;
-  const title = `${esc(item.guideline?.itemId || '')} ${esc(item.guideline?.title || '')}`.trim();
+  const title = guidelineLabel(item.guideline);
   return `
     <button data-kind="REVISION" data-id="${esc(item.revisionId)}"
       class="card-item w-full rounded-[20px] bg-white p-6 text-left shadow-card transition
              ${active ? 'ring-2 ring-salmon bg-[#fffaf9]' : 'hover:bg-[#fafafa]'}">
       <div class="mb-5 flex items-center justify-between">
-        <span class="inline-flex items-center gap-2 rounded-[18px] ${p.bg} px-4 py-1.5 text-[20px] font-medium ${p.text}">
-          우선순위 <span>${esc(item.priority?.rank ?? '-')}</span>
+        <span class="inline-flex items-center gap-2 rounded-[18px] ${r.bg} px-4 py-1.5 text-[20px] font-medium ${r.text}">
+          위험도 <span>${esc(item.risk?.level || '-')}</span>
         </span>
         <span class="text-[20px] text-muted">${esc(item.createdAt || '')}</span>
       </div>
@@ -220,8 +231,8 @@ function renderDetail() {
 /* 지침 개정 상세 (기존 유지) */
 function renderRevisionDetail(item) {
   const box = document.getElementById('detailWrap');
-  const p = priorityStyle(item.priority?.rank);
-  const title = `${esc(item.guideline?.itemId || '')} ${esc(item.guideline?.title || '')}`.trim();
+  const p = riskStyle(item.risk?.level);
+  const title = guidelineLabel(item.guideline);
   const curVer = esc(item.currentVersion?.versionNumber || 'v1.0');
   const candVer = esc(item.candidateVersion?.versionNumber || 'v1.1');
   const priorityReason = [item.priority?.reason, item.risk?.level].filter(Boolean).map(esc).join(' / ');
@@ -232,7 +243,7 @@ function renderRevisionDetail(item) {
       <div class="flex flex-wrap items-center gap-3">
         <h3 class="text-[35px] font-semibold">${title}</h3>
         <span class="inline-flex items-center gap-1.5 rounded-[14px] ${p.bg} px-3 py-1 text-[22px] font-medium ${p.text}">
-          우선순위 <span>${esc(item.priority?.rank ?? '-')}</span>
+          위험도 <span>${esc(item.risk?.level || '-')}</span>
         </span>
         <span class="inline-flex items-center gap-2 rounded-[14px] bg-ink px-3 py-1 text-[22px] font-medium text-white">
           AGENT <span>${esc(item.agentId || '-')}</span>
