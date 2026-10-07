@@ -28,6 +28,7 @@ const state = {
   selectedKind: null, // 'REVISION' | 'TECH' | 'MANUAL'
   selectedId: null,   // revisionId 또는 reportId
   rejecting: false,   // 반려 사유 입력 모드
+  busy: false,        // 승인·반려·확인 등을 서버에 보내는 중이면 true
   manualDraft: null,  // 수동검토 입력 중인 값 {reportId, mode, guidelineItemId, before, after, reason}
 };
 
@@ -224,6 +225,7 @@ function renderManualCard(m) {
  * 5. 상세 열기 / 렌더
  * ------------------------------------------------------------------------- */
 function selectItem(kind, id) {
+  if (state.busy) return; // 처리 중에 다른 카드를 열면 엉뚱한 카드가 지워질 수 있다
   state.selectedKind = kind;
   state.selectedId = id;
   state.rejecting = false;
@@ -612,11 +614,13 @@ function updateBeforeHint() {
 function bindManualActions(m) {
   const $ = (id) => document.getElementById(id);
   document.querySelectorAll('.mr-tab').forEach(b => b.addEventListener('click', () => {
+    if (state.busy) return;
     syncManualDraft();
     state.manualDraft.mode = b.dataset.mode;
     renderManualDetail(m);
   }));
   $('mrGuideline')?.addEventListener('change', () => {
+    if (state.busy) return;
     syncManualDraft();
     state.manualDraft.before = ''; state.manualDraft.after = ''; // 다른 지침이면 구간이 달라진다
     renderManualDetail(m);
@@ -648,7 +652,7 @@ function renderActionButtons() {
   if (getSelected()?.staleBase) {
     return `
       <span class="mr-2 text-[23px] font-medium text-[#d99a00]">기준 지침이 바뀌어 승인할 수 없습니다. 반려 후 다시 검토해 주세요.</span>
-      <button id="btnApprove" disabled class="cursor-not-allowed rounded-[14px] bg-brand px-9 py-3 text-[27px] font-semibold text-white opacity-30">승인</button>
+      <button id="btnApprove" disabled data-keep-disabled class="cursor-not-allowed rounded-[14px] bg-brand px-9 py-3 text-[27px] font-semibold text-white opacity-30">승인</button>
       <button id="btnReject" class="rounded-[14px] bg-ink px-9 py-3 text-[27px] font-semibold text-white hover:opacity-90">반려</button>`;
   }
   return `
@@ -677,6 +681,26 @@ function bindActions() {
   }
 }
 
+/* 처리 중에는 같은 줄의 버튼을 모두 막는다.
+ * 누른 버튼은 그대로 두고 '처리 중…'으로 바뀌며, 나머지는 연하게(opacity-30) 보인다. */
+const ACTION_BTNS = '#detailWrap .sticky button:not([data-keep-disabled])';
+function lockActions(activeBtn) {
+  state.busy = true;
+  document.querySelectorAll(ACTION_BTNS).forEach(b => {
+    b.disabled = true;
+    b.classList.add(b === activeBtn ? 'cursor-wait' : 'opacity-30', ...(b === activeBtn ? [] : ['cursor-not-allowed']));
+  });
+  document.querySelectorAll('#detailWrap textarea, #detailWrap select').forEach(t => { t.disabled = true; });
+}
+function unlockActions() {
+  state.busy = false;
+  document.querySelectorAll(ACTION_BTNS).forEach(b => {
+    b.disabled = false;
+    b.classList.remove('cursor-wait', 'opacity-30', 'cursor-not-allowed');
+  });
+  document.querySelectorAll('#detailWrap textarea, #detailWrap select').forEach(t => { t.disabled = false; });
+}
+
 /* 결정 전송 공통 (POST JSON) */
 async function postJson(path, payload) {
   const url = CONFIG.N8N_BASE_URL + path;
@@ -695,6 +719,7 @@ async function postJson(path, payload) {
 
 /* 이미 처리됐거나 기준이 바뀐 건(403/409)이면 서버 기준으로 목록을 다시 불러온다 */
 async function reloadAll() {
+  state.busy = false;
   state.selectedKind = null; state.selectedId = null; state.rejecting = false; state.manualDraft = null;
   document.getElementById('layout')?.classList.remove('detail-open');
   const d = document.getElementById('detailWrap'); if (d) d.innerHTML = '';
@@ -706,9 +731,10 @@ async function refreshIfStale(e) {
 
 async function approve() {
   const item = getSelected();
-  if (!item) return;
+  if (!item || state.busy) return;
   const btn = document.getElementById('btnApprove');
-  if (btn) { btn.disabled = true; btn.textContent = '처리 중…'; }
+  lockActions(btn);
+  if (btn) btn.textContent = '처리 중…';
   try {
     await postJson(CONFIG.DECISION_PATH, {
       revisionId: item.revisionId,
@@ -719,14 +745,15 @@ async function approve() {
     removeSelected();
   } catch (e) {
     alert('승인 처리에 실패했습니다: ' + e.message);
+    unlockActions();
+    if (btn) btn.textContent = '승인';
     refreshIfStale(e);
-    if (btn) { btn.disabled = false; btn.textContent = '승인'; }
   }
 }
 
 async function submitReject() {
   const item = getSelected();
-  if (!item) return;
+  if (!item || state.busy) return;
   const reason = (document.getElementById('rejectReason')?.value || '').trim();
   if (!reason) {
     alert('반려 사유를 입력해 주세요.');
@@ -734,7 +761,8 @@ async function submitReject() {
     return;
   }
   const btn = document.getElementById('btnRejectSubmit');
-  if (btn) { btn.disabled = true; btn.textContent = '처리 중…'; }
+  lockActions(btn);
+  if (btn) btn.textContent = '처리 중…';
   try {
     await postJson(CONFIG.DECISION_PATH, {
       revisionId: item.revisionId,
@@ -745,16 +773,18 @@ async function submitReject() {
     removeSelected();
   } catch (e) {
     alert('반려 처리에 실패했습니다: ' + e.message);
+    unlockActions();
+    if (btn) btn.textContent = '반려 제출';
     refreshIfStale(e);
-    if (btn) { btn.disabled = false; btn.textContent = '반려 제출'; }
   }
 }
 
 async function confirmTech() {
   const t = getSelected();
-  if (!t) return;
+  if (!t || state.busy) return;
   const btn = document.getElementById('btnConfirmTech');
-  if (btn) { btn.disabled = true; btn.textContent = '처리 중…'; }
+  lockActions(btn);
+  if (btn) btn.textContent = '처리 중…';
   try {
     await postJson(CONFIG.TECH_CONFIRM_PATH, {
       reportId: t.reportId,
@@ -763,15 +793,16 @@ async function confirmTech() {
     removeSelected();
   } catch (e) {
     alert('확인 처리에 실패했습니다: ' + e.message);
+    unlockActions();
+    if (btn) btn.textContent = '확인';
     refreshIfStale(e);
-    if (btn) { btn.disabled = false; btn.textContent = '확인'; }
   }
 }
 
 /* 수동검토 처리 — SUBMIT_REVISION / COMPLETE_NO_CHANGE / SAVE_NOTE */
 async function submitManual() {
   const m = getSelected();
-  if (!m) return;
+  if (!m || state.busy) return;
   syncManualDraft();
   const d = state.manualDraft;
   const reason = d.reason.trim();
@@ -801,10 +832,12 @@ async function submitManual() {
 
   const btn = document.getElementById('btnManualSubmit');
   const label = btn?.textContent;
-  if (btn) { btn.disabled = true; btn.textContent = '처리 중…'; }
+  lockActions(btn);
+  if (btn) btn.textContent = '처리 중…';
   try {
     const data = await postJson(CONFIG.MANUAL_REVIEW_PATH, payload);
     if (d.mode === 'SAVE_NOTE') {
+      state.busy = false;
       alert(data.message || '검토 메모를 저장했습니다.');
       state.manualDraft.reason = '';
       renderManualDetail(m);
@@ -814,13 +847,15 @@ async function submitManual() {
     }
   } catch (e) {
     alert('수동검토 처리에 실패했습니다: ' + e.message);
+    unlockActions();
+    if (btn) btn.textContent = label;
     refreshIfStale(e);
-    if (btn) { btn.disabled = false; btn.textContent = label; }
   }
 }
 
 /* 현재 선택 항목을 목록에서 제거하고 상세 닫기 */
 function removeSelected() {
+  state.busy = false;
   if (state.selectedKind === 'MANUAL') {
     state.manualItems = state.manualItems.filter(m => m.reportId !== state.selectedId);
   } else if (state.selectedKind === 'TECH') {
