@@ -42,6 +42,17 @@ function riskStyle(level) {
   return map[String(level || '').toUpperCase()] || { text: 'text-ink/60', bg: 'bg-canvas' };
 }
 
+/* 위험도 순서 정렬 — CRITICAL > HIGH > MEDIUM > LOW > 값 없음. 같으면 우선순위 번호(작은 쪽 먼저), 그다음 서버 순서 유지 */
+const RISK_ORDER = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+function sortByRisk(list) {
+  const key = (x) => RISK_ORDER[String(x.risk?.level || '').toUpperCase()] ?? 4;
+  const rank = (x) => Number.isFinite(Number(x.priority?.rank)) && x.priority?.rank !== null ? Number(x.priority.rank) : Infinity;
+  return [...list]
+    .map((x, i) => ({ x, i }))
+    .sort((a, b) => key(a.x) - key(b.x) || (rank(a.x) === rank(b.x) ? 0 : rank(a.x) < rank(b.x) ? -1 : 1) || a.i - b.i)
+    .map(o => o.x);
+}
+
 /* HTML 이스케이프 */
 function esc(v) {
   return String(v ?? '')
@@ -114,13 +125,13 @@ function renderList() {
     if (state.techItems.length) {
       html += `<div class="mb-1 mt-1 px-1 text-[15px] font-semibold text-ink/50">지침 개정 대기 (${state.items.length})</div>`;
     }
-    html += state.items.map(renderRevisionCard).join('');
+    html += sortByRisk(state.items).map(renderRevisionCard).join('');
   }
 
   // 기술 문제 (별도 영역)
   if (state.techItems.length) {
     html += `<div class="mb-1 mt-4 px-1 text-[15px] font-semibold text-ink/50">기술 문제 (${state.techItems.length})</div>`;
-    html += state.techItems.map(renderTechCard).join('');
+    html += sortByRisk(state.techItems).map(renderTechCard).join('');
   }
 
   wrap.innerHTML = html;
