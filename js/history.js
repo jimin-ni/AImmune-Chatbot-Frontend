@@ -67,7 +67,9 @@ function normalizeItem(raw) {
   return {
     id: raw.revisionId || raw.reportId || raw.id || '',
     summary: raw.summary || raw.change?.reason || raw.revisionReason
-             || `${raw.guideline?.itemId || ''} ${raw.guideline?.title || ''}`.trim() || '요약 없음',
+             || (raw.guideline?.title && raw.guideline.title !== raw.guideline?.itemId
+                 ? `${raw.guideline?.itemId || ''} ${raw.guideline.title}`.trim()
+                 : (raw.guideline?.itemId || '')) || '요약 없음',
     agent: raw.agentId || raw.agentName || raw.agent || '-',
     riskLevel: raw.risk?.level || raw.riskLevel || null,
     duplicateCount: Number(raw.duplicateCount ?? raw.evidenceCount ?? raw.evidence?.count ?? 0),

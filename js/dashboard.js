@@ -42,6 +42,14 @@ function riskStyle(level) {
   return map[String(level || '').toUpperCase()] || { text: 'text-ink/60', bg: 'bg-canvas' };
 }
 
+/* 지침 항목 표시 이름: "ID 제목". 제목이 없거나 ID와 같으면(n8n 제목표에 없는 항목) ID만 한 번 */
+function guidelineLabel(g) {
+  const id = String(g?.itemId ?? '').trim();
+  const title = String(g?.title ?? '').trim();
+  return esc(!title || title === id ? (id || title) : (id ? `${id} ${title}` : title));
+}
+
+
 /* 위험도 순서 정렬 — CRITICAL > HIGH > MEDIUM > LOW > 값 없음. 같으면 우선순위 번호(작은 쪽 먼저), 그다음 서버 순서 유지 */
 const RISK_ORDER = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
 function sortByRisk(list) {
@@ -145,7 +153,7 @@ function renderList() {
 function renderRevisionCard(item) {
   const r = riskStyle(item.risk?.level);
   const active = state.selectedKind === 'REVISION' && item.revisionId === state.selectedId;
-  const title = `${esc(item.guideline?.itemId || '')} ${esc(item.guideline?.title || '')}`.trim();
+  const title = guidelineLabel(item.guideline);
   return `
     <button data-kind="REVISION" data-id="${esc(item.revisionId)}"
       class="card-item w-full rounded-[20px] bg-white p-6 text-left shadow-card transition
@@ -224,7 +232,7 @@ function renderDetail() {
 function renderRevisionDetail(item) {
   const box = document.getElementById('detailWrap');
   const p = riskStyle(item.risk?.level);
-  const title = `${esc(item.guideline?.itemId || '')} ${esc(item.guideline?.title || '')}`.trim();
+  const title = guidelineLabel(item.guideline);
   const curVer = esc(item.currentVersion?.versionNumber || 'v1.0');
   const candVer = esc(item.candidateVersion?.versionNumber || 'v1.1');
   const priorityReason = [item.priority?.reason, item.risk?.level].filter(Boolean).map(esc).join(' / ');
