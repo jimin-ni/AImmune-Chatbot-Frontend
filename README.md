@@ -7,8 +7,9 @@
 > 응답 지연·오답·근거자료 오류를 **현장 건의로 수집**하고, 지침서를 **버전 단위로 관리**하여
 > *담당자가 근거를 보고 승인한 개정만* 에이전트에 반영되도록 통제하는 웹 시스템.
 
-🔗 **데모/배포:** [https://aimmune-chatbot-frontend-production.up.railway.app/]  
-
+🔗 **데모/배포:**  
+- [가상 조이 (https://aimmune-chatbot-frontend-production.up.railway.app/)]  
+- [관리자 대시보드 (https://aimmune-chatbot-frontend-production.up.railway.app/dashboard.html)]  
 
 
 ## 🙋 담당 역할 — 프론트엔드 (사용자 접점 전 영역)
