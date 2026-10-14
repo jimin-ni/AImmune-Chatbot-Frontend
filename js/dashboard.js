@@ -469,23 +469,24 @@ function renderTechDetail(t) {
   const box = document.getElementById('detailWrap');
   const r = riskStyle(t.risk?.level);
 
+  // 크기·여백은 지침 개정 상세와 같은 기준 (제목 35 / 섹션 27 / 본문 23 / 뱃지 22 / 날짜 21)
   const reportBlock = (label, text) => text
     ? `<div class="rounded-[16px] bg-canvas p-5">
-         <div class="mb-2 text-[14px] font-medium text-ink/50">${label}</div>
-         <p class="text-[16px] leading-relaxed">${esc(text)}</p>
+         <div class="mb-2 text-[22px] font-medium text-ink/60">${label}</div>
+         <p class="whitespace-pre-wrap text-[23px] leading-relaxed">${esc(text)}</p>
        </div>` : '';
 
   box.innerHTML = `
     <div class="flex items-start justify-between">
       <div class="flex flex-wrap items-center gap-3">
-        <h3 class="text-[28px] font-semibold">${esc(t.complaintType || '기술 문제')}</h3>
-        <span class="inline-flex items-center rounded-[14px] bg-[#eaf8ff] px-3 py-1 text-[15px] font-medium text-[#25a0e2]">기술 문제</span>
-        <span class="inline-flex items-center gap-2 rounded-[14px] bg-ink px-3 py-1 text-[15px] font-medium text-white">
+        <h3 class="text-[35px] font-semibold">${esc(t.complaintType || '기술 문제')}</h3>
+        <span class="inline-flex items-center rounded-[14px] bg-[#eaf8ff] px-3 py-1 text-[22px] font-medium text-[#25a0e2]">기술 문제</span>
+        <span class="inline-flex items-center gap-2 rounded-[14px] bg-ink px-3 py-1 text-[22px] font-medium text-white">
           AGENT <span>${esc(t.agentName || '-')}</span>
         </span>
-        ${t.risk?.level ? `<span class="inline-flex items-center rounded-[14px] ${r.bg} px-3 py-1 text-[15px] font-medium ${r.text}">위험도 ${esc(t.risk.level)}</span>` : ''}
+        ${t.risk?.level ? `<span class="inline-flex items-center gap-1.5 rounded-[14px] ${r.bg} px-3 py-1 text-[22px] font-medium ${r.text}">위험도 <span>${esc(t.risk.level)}</span></span>` : ''}
       </div>
-      <div class="text-right text-[14px] text-muted">
+      <div class="text-right text-[21px] text-muted">
         <div>요청일: ${esc(t.createdAt || '')}</div>
         <div>사건 발생일: ${esc(t.occurredAt || '-')}</div>
         <div>신고번호: ${esc(t.reportId || '')}</div>
@@ -493,38 +494,45 @@ function renderTechDetail(t) {
     </div>
 
     <section class="mt-8">
-      <h4 class="mb-3 text-[20px] font-semibold">신고 내용</h4>
+      <h4 class="mb-3 text-[27px] font-semibold">신고 내용</h4>
       <div class="space-y-3">
         ${reportBlock('사용자 질문', t.userPrompt)}
         ${reportBlock('AI 응답', t.agentResponse)}
         ${reportBlock('문제 / 요청', t.issueRequest)}
-        ${(!t.userPrompt && !t.agentResponse && !t.issueRequest) ? '<p class="text-muted">신고 상세 내용이 없습니다.</p>' : ''}
+        ${(!t.userPrompt && !t.agentResponse && !t.issueRequest) ? '<p class="text-[23px] text-muted">신고 상세 내용이 없습니다.</p>' : ''}
       </div>
     </section>
 
     <section class="mt-8">
-      <h4 class="mb-3 text-[20px] font-semibold">분석 이유</h4>
-      <p class="text-[16px] leading-relaxed text-ink/90">${esc(t.classificationReason || '-')}</p>
+      <h4 class="mb-3 text-[27px] font-semibold">분석 이유</h4>
+      <p class="text-[23px] leading-relaxed text-ink/90">${esc(t.classificationReason || '-')}</p>
     </section>
 
     <section class="mt-8">
-      <h4 class="mb-3 text-[20px] font-semibold">위험도</h4>
-      <div class="flex items-center gap-3">
-        ${t.risk?.level
-          ? `<span class="inline-flex items-center rounded-[14px] ${r.bg} px-3 py-1 text-[15px] font-medium ${r.text}">${esc(t.risk.level)}</span>`
-          : '<span class="text-muted">-</span>'}
-        <span class="text-[16px] text-ink/80">${esc(t.risk?.reason || '')}</span>
+      <h4 class="mb-4 text-[27px] font-semibold">근거 및 추가 정보</h4>
+      <div class="space-y-3 text-[23px]">
+        <div class="flex items-center gap-6">
+          <span class="w-48 shrink-0 text-ink/60">위험도</span>
+          ${t.risk?.level
+            ? `<span class="inline-flex items-center rounded-[14px] ${r.bg} px-3 py-1 text-[22px] font-medium ${r.text}">${esc(t.risk.level)}</span>`
+            : '<span class="text-muted">-</span>'}
+        </div>
+        ${t.risk?.reason ? `
+        <div class="flex gap-6">
+          <span class="w-48 shrink-0 text-ink/60">위험 사유</span>
+          <span>${esc(t.risk.reason)}</span>
+        </div>` : ''}
       </div>
     </section>
 
-    <div class="mt-6 rounded-[16px] bg-[#fff7e2] p-4 text-[14px] leading-relaxed text-ink/70">
-      문제를 확인하고 필요한 조치를 완료한 뒤 <b>확인</b>을 눌러 주세요. 확인하면 조치 완료 기록을 저장하고 신고자에게 결과를 안내합니다.    
+    <div class="mt-8 rounded-[16px] bg-[#fff7e2] px-6 py-5 text-[21px] leading-relaxed text-ink/70">
+      문제를 확인하고 필요한 조치를 완료한 뒤 <b>확인</b>을 눌러 주세요. 확인하면 조치 완료 기록을 저장하고 신고자에게 결과를 안내합니다.
     </div>
 
     <div class="sticky bottom-4 mt-10 flex justify-center" data-tour="tech-confirm">
       <div class="flex items-center gap-4 rounded-[20px] bg-white px-6 py-4 shadow-[0_4px_24px_rgba(0,0,0,0.12)]">
-        <span class="mr-2 text-[16px] font-medium text-ink/70">이 기술 문제를 확인 처리할까요?</span>
-        <button id="btnConfirmTech" class="rounded-[14px] bg-[#25a0e2] px-9 py-3 text-[20px] font-semibold text-white hover:opacity-90">확인</button>
+        <span class="mr-2 text-[23px] font-medium text-ink/70">이 기술 문제를 확인 처리할까요?</span>
+        <button id="btnConfirmTech" class="rounded-[14px] bg-[#25a0e2] px-9 py-3 text-[27px] font-semibold text-white hover:opacity-90">확인</button>
       </div>
     </div>
   `;
