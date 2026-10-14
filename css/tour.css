@@ -1,0 +1,45 @@
+/* 관리자 대시보드 가이드 — 모든 값은 2560x1600 캔버스 기준 px (화면 축소에 맞춰 함께 줄어든다) */
+.tour-root { position: absolute; inset: 0; z-index: 1000; }
+.tour-blocker { position: absolute; inset: 0; }
+.tour-root.dim .tour-blocker { background: rgba(20, 24, 36, .55); }
+
+/* 하이라이트: 대상만 뚫어 보이게 바깥을 어둡게 */
+.tour-spot {
+  position: absolute; border-radius: 24px; pointer-events: none;
+  box-shadow: 0 0 0 5px #f06548, 0 0 0 9999px rgba(20, 24, 36, .55);
+  transition: left .3s ease, top .3s ease, width .3s ease, height .3s ease;
+}
+
+/* 뮤니 말풍선 */
+.tour-bubble {
+  position: absolute; width: 780px; box-sizing: border-box;
+  display: grid; grid-template-columns: 150px 1fr; gap: 26px; align-items: start;
+  padding: 30px 34px 28px 28px; border-radius: 28px; background: #fff; color: #363636;
+  box-shadow: 0 14px 48px rgba(0, 0, 0, .28);
+  transition: left .3s ease, top .3s ease;
+}
+.tour-tail { position: absolute; width: 30px; height: 30px; background: #fff; transform: rotate(45deg); border-radius: 4px; }
+.tour-muni { position: relative; width: 150px; height: 162px; object-fit: contain; }
+.tour-body { position: relative; min-width: 0; }
+.tour-step { font-size: 20px; font-weight: 700; color: #f06548; letter-spacing: .02em; }
+.tour-bubble h3 { margin: 6px 0 10px; font-size: 33px; font-weight: 700; line-height: 1.3; }
+.tour-bubble p { margin: 0; font-size: 25px; line-height: 1.55; color: rgba(54, 54, 54, .85); word-break: keep-all; }
+.tour-bubble .tour-note { margin-top: 12px; padding: 10px 16px; border-radius: 12px; background: #fff7e2; color: #a87700; font-size: 21px; }
+.tour-actions { display: flex; align-items: center; gap: 12px; margin-top: 26px; }
+.tour-actions .grow { flex: 1; }
+.tour-btn { border: 0; border-radius: 14px; padding: 12px 28px; font: inherit; font-size: 23px; font-weight: 600; cursor: pointer; }
+.tour-btn:hover { opacity: .9; }
+.tour-btn:focus-visible { outline: 4px solid #25a0e2; outline-offset: 3px; }
+.tour-skip { padding-left: 0; background: transparent; color: rgba(54, 54, 54, .55); }
+.tour-prev { background: #f4f4f4; color: rgba(54, 54, 54, .75); }
+.tour-next { background: #f0322e; color: #fff; }
+.tour-root [hidden] { display: none !important; }
+
+/* 레일의 가이드 버튼 (의사 가운 뮤니) */
+#btnTour img { border-radius: 9999px; transition: transform .2s ease, box-shadow .2s ease; }
+#btnTour:hover img, #btnTour:focus-visible img { transform: scale(1.06); box-shadow: 0 0 0 4px rgba(240, 101, 72, .35); }
+#btnTour:focus-visible { outline: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-spot, .tour-bubble, #btnTour img { transition: none; }
+}

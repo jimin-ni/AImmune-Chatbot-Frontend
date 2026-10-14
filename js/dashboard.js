@@ -163,7 +163,7 @@ function renderRevisionCard(item) {
         <span class="inline-flex items-center gap-2 rounded-[18px] ${r.bg} px-4 py-1.5 text-[20px] font-medium ${r.text}">
           위험도 <span>${esc(item.risk?.level || '-')}</span>
         </span>
-        <span class="text-[20px] text-muted">${esc(item.createdAt || '')}</span>
+        <span class="text-[20px] text-muted">${item.demo ? DEMO_TAG : esc(item.createdAt || '')}</span>
       </div>
       <div class="mb-1.5 text-[28px] font-semibold [text-wrap:balance]">${title}</div>
       <p class="mb-5 line-clamp-1 text-[22px] text-ink/70">${esc(item.change?.reason || '')}</p>
@@ -184,7 +184,7 @@ function renderTechCard(t) {
              ${active ? 'ring-2 ring-[#25a0e2] bg-[#f7fbff]' : 'hover:bg-[#fafafa]'}">
       <div class="mb-5 flex items-center justify-between">
         <span class="inline-flex items-center rounded-[18px] bg-[#eaf8ff] px-4 py-1.5 text-[20px] font-medium text-[#25a0e2]">기술 문제</span>
-        <span class="text-[20px] text-muted">${esc(t.createdAt || '')}</span>
+        <span class="text-[20px] text-muted">${t.demo ? DEMO_TAG : esc(t.createdAt || '')}</span>
       </div>
       <div class="mb-1.5 text-[28px] font-semibold [text-wrap:balance]">${title}</div>
       <p class="mb-5 line-clamp-1 text-[22px] text-ink/70">${esc(t.issueRequest || t.classificationReason || '')}</p>
@@ -208,7 +208,7 @@ function renderManualCard(m) {
              ${active ? 'ring-2 ring-ink bg-[#fafafa]' : 'hover:bg-[#fafafa]'}">
       <div class="mb-5 flex items-center justify-between">
         <span class="inline-flex items-center whitespace-nowrap rounded-[18px] bg-ink px-4 py-1.5 text-[20px] font-medium text-white">수동검토</span>
-        <span class="whitespace-nowrap text-[20px] text-muted">${esc(m.createdAt || '')}</span>
+        <span class="whitespace-nowrap text-[20px] text-muted">${m.demo ? DEMO_TAG : esc(m.createdAt || '')}</span>
       </div>
       <div class="mb-1.5 text-[28px] font-semibold [text-wrap:balance]">${esc(m.complaintType || '수동검토')}</div>
       <p class="mb-5 line-clamp-1 text-[22px] text-ink/70">${esc(m.issueRequest || m.resolution || '')}</p>
@@ -296,7 +296,7 @@ function renderRevisionDetail(item) {
       <p class="text-[23px] leading-relaxed text-ink/90">${esc(item.change?.reason || '')}</p>
     </section>
 
-    <section class="mt-8">
+    <section class="mt-8" data-tour="compare">
       <h4 class="mb-3 text-[27px] font-semibold">개정 제안</h4>
       <div class="flex items-stretch gap-4">
         <div class="flex-1 rounded-[16px] bg-canvas p-5">
@@ -426,7 +426,7 @@ function renderTechDetail(t) {
       문제를 확인하고 필요한 조치를 완료한 뒤 <b>확인</b>을 눌러 주세요. 확인하면 조치 완료 기록을 저장하고 신고자에게 결과를 안내합니다.    
     </div>
 
-    <div class="sticky bottom-4 mt-10 flex justify-center">
+    <div class="sticky bottom-4 mt-10 flex justify-center" data-tour="tech-confirm">
       <div class="flex items-center gap-4 rounded-[20px] bg-white px-6 py-4 shadow-[0_4px_24px_rgba(0,0,0,0.12)]">
         <span class="mr-2 text-[16px] font-medium text-ink/70">이 기술 문제를 확인 처리할까요?</span>
         <button id="btnConfirmTech" class="rounded-[14px] bg-[#25a0e2] px-9 py-3 text-[20px] font-semibold text-white hover:opacity-90">확인</button>
@@ -569,7 +569,7 @@ function renderManualDetail(m) {
       </div>
     </section>
 
-    <section class="mt-8">
+    <section class="mt-8" data-tour="manual-modes">
       <h4 class="mb-3 text-[27px] font-semibold">처리 방법</h4>
       <div class="mb-3 flex flex-wrap gap-3">
         ${Object.entries(MANUAL_MODES).map(([k, v]) => `
@@ -730,6 +730,7 @@ async function refreshIfStale(e) {
 }
 
 async function approve() {
+  if (window.AIMMUNE_TOUR?.active) return; // 가이드 중에는 실제 요청을 보내지 않는다
   const item = getSelected();
   if (!item || state.busy) return;
   const btn = document.getElementById('btnApprove');
@@ -752,6 +753,7 @@ async function approve() {
 }
 
 async function submitReject() {
+  if (window.AIMMUNE_TOUR?.active) return; // 가이드 중에는 실제 요청을 보내지 않는다
   const item = getSelected();
   if (!item || state.busy) return;
   const reason = (document.getElementById('rejectReason')?.value || '').trim();
@@ -780,6 +782,7 @@ async function submitReject() {
 }
 
 async function confirmTech() {
+  if (window.AIMMUNE_TOUR?.active) return; // 가이드 중에는 실제 요청을 보내지 않는다
   const t = getSelected();
   if (!t || state.busy) return;
   const btn = document.getElementById('btnConfirmTech');
@@ -801,6 +804,7 @@ async function confirmTech() {
 
 /* 수동검토 처리 — SUBMIT_REVISION / COMPLETE_NO_CHANGE / SAVE_NOTE */
 async function submitManual() {
+  if (window.AIMMUNE_TOUR?.active) return; // 가이드 중에는 실제 요청을 보내지 않는다
   const m = getSelected();
   if (!m || state.busy) return;
   syncManualDraft();
@@ -892,6 +896,7 @@ async function init() {
     if (data.techConfirmApi && data.techConfirmApi.path) CONFIG.TECH_CONFIRM_PATH = data.techConfirmApi.path;
     if (data.manualReviewApi && data.manualReviewApi.path) CONFIG.MANUAL_REVIEW_PATH = data.manualReviewApi.path;
     renderList();
+    window.AIMMUNE_TOUR?.maybeAutoStart(); // 첫 방문이면 가이드 시작
   } catch (e) {
     console.error('[A-IMMUNE] 조회 실패:', e);
     document.getElementById('listWrap').innerHTML =
@@ -925,6 +930,53 @@ const SAMPLE_ITEMS = [
     createdAt: '2026-09-30 14:40:39',
   },
 ];
+
+/* ---------------------------------------------------------------------------
+ * 9. 가이드(Product Tour)용 훅 — js/tour.js에서 사용
+ *    목록이 비어 있으면 예시 카드를 잠시 보여주고, 가이드가 끝나면 실제 목록으로 되돌린다.
+ * ------------------------------------------------------------------------- */
+const DEMO_TAG = '<span class="rounded-[12px] bg-[#fff7e2] px-3 py-1 text-[18px] font-semibold text-[#d99a00]">예시</span>';
+const DEMO_MANUAL = {
+  type: 'MANUAL', demo: true, reportId: 'DEMO-MANUAL', agentName: 'JOY', agentId: 'JOY', complaintType: '확인 필요',
+  userPrompt: '이번 달 데이터 사용량이 얼마나 남았는지 알려줘', agentResponse: '정확한 잔여량은 확인이 어렵습니다.',
+  issueRequest: '잔여량 확인 방법을 안내해 주면 좋겠어요', resolution: '개정안 반려 - 재검토 필요', guidelineItemId: 'G-004', createdAt: '예시',
+};
+const DEMO_TECH = {
+  type: 'TECH', demo: true, reportId: 'DEMO-TECH', agentName: 'JOY', complaintType: '응답 지연',
+  issueRequest: '답변이 30초 넘게 나오지 않아요', classificationReason: '응답 지연은 지침 개정이 아니라 기술 확인 대상', risk: { level: 'MEDIUM', reason: '상담 진행이 늦어짐' }, createdAt: '예시',
+};
+let tourBackup = null;
+window.AIMMUNE_DASH = {
+  isBusy: () => !!state.busy,
+  has: (kind) => (kind === 'MANUAL' ? state.manualItems : kind === 'TECH' ? state.techItems : state.items).length > 0,
+  open(kind) {
+    const list = kind === 'MANUAL' ? state.manualItems : kind === 'TECH' ? state.techItems : sortByRisk(state.items);
+    const first = list[0]; if (!first) return false;
+    const id = kind === 'REVISION' ? first.revisionId : first.reportId;
+    if (state.selectedKind !== kind || state.selectedId !== id) selectItem(kind, id);
+    return true;
+  },
+  close() {
+    state.selectedKind = null; state.selectedId = null; state.rejecting = false; state.manualDraft = null;
+    document.getElementById('layout').classList.remove('detail-open');
+    document.getElementById('detailWrap').innerHTML = '';
+    renderList();
+  },
+  useDemoIfEmpty() {
+    if (state.items.length || state.manualItems.length || state.techItems.length) return false;
+    tourBackup = { items: state.items, manualItems: state.manualItems, techItems: state.techItems };
+    state.items = SAMPLE_ITEMS.map(x => ({ ...x, demo: true }));
+    state.manualItems = [DEMO_MANUAL];
+    state.techItems = [DEMO_TECH];
+    renderList();
+    return true;
+  },
+  restore() {
+    if (!tourBackup) return;
+    Object.assign(state, tourBackup); tourBackup = null;
+    this.close();
+  },
+};
 
 // DOM 준비 여부와 무관하게 실행
 if (document.readyState === 'loading') {
