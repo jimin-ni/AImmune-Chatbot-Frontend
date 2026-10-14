@@ -299,9 +299,29 @@ function selectItem(kind, id) {
   state.selectedId = id;
   state.rejecting = false;
   state.manualDraft = null;
-  document.getElementById('layout').classList.add('detail-open');
+  const layout = document.getElementById('layout');
+  const opening = !layout.classList.contains('detail-open');
+  const col = document.getElementById('listCol');
+  const x0 = opening ? col.getBoundingClientRect().left : 0;
+  layout.classList.add('detail-open');
   renderList();
   renderDetail();
+  if (opening) slideListLeft(col, x0);
+}
+
+/* 상세가 처음 열릴 때: 가운데 있던 목록이 왼쪽으로 스르륵 이동 (1.5s, 빠르게 출발해 천천히 멈춤)
+ * 자리를 먼저 바꾼 뒤, 원래 위치에서 출발하는 것처럼 되돌려 놓고 0으로 움직인다(FLIP). */
+const SLIDE = { duration: 1500, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' };
+function slideListLeft(col, x0) {
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || !col.animate) return;
+  const k = document.getElementById('stage').getBoundingClientRect().width / 2560 || 1; // 캔버스 축소 비율
+  const dx = (x0 - col.getBoundingClientRect().left) / k;
+  if (Math.abs(dx) < 1) return;
+  col.getAnimations().forEach(a => a.cancel());
+  col.animate([{ transform: `translateX(${dx}px)` }, { transform: 'translateX(0)' }], SLIDE);
+  // 상세는 목록이 비켜 주는 동안 서서히 나타난다
+  document.getElementById('detailCol').animate([{ opacity: 0 }, { opacity: 1 }],
+    { duration: 900, delay: 250, easing: 'ease-out', fill: 'backwards' });
 }
 
 function getSelected() {
