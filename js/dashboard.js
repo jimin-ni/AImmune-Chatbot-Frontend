@@ -47,6 +47,25 @@ function riskStyle(level) {
   return map[String(level || '').toUpperCase()] || { text: 'text-ink/60', bg: 'bg-canvas' };
 }
 
+/* 우선순위 이유: "위험도 MEDIUM" 부분은 위험도 뱃지로, 나머지는 글자로 ( / 로 구분) */
+function renderPriorityReason(item) {
+  const LV = /^(?:위험도\s+)?(CRITICAL|HIGH|MEDIUM|LOW)$/i;
+  const parts = [item.priority?.reason, item.risk?.level].filter(Boolean)
+    .flatMap(t => String(t).split('/')).map(t => t.trim()).filter(Boolean);
+  let shownLevel = false;
+  const out = [];
+  for (const t of parts) {
+    const m = t.match(LV);
+    if (m) {
+      if (shownLevel) continue;                       // 위험도가 두 번 나오면 한 번만
+      shownLevel = true;
+      const r = riskStyle(m[1]);
+      out.push(`<span class="inline-flex items-center gap-1.5 rounded-[14px] ${r.bg} px-3 py-1 text-[22px] font-medium ${r.text}">위험도 <span>${esc(m[1].toUpperCase())}</span></span>`);
+    } else out.push(`<span>${esc(t)}</span>`);
+  }
+  return out.join('<span class="text-muted">/</span>');
+}
+
 /* 지침 항목 표시 이름: "ID 제목". 제목이 없거나 ID와 같으면(n8n 제목표에 없는 항목) ID만 한 번 */
 function guidelineLabel(g) {
   const id = String(g?.itemId ?? '').trim();
@@ -355,7 +374,7 @@ function renderRevisionDetail(item) {
   const title = guidelineLabel(item.guideline);
   const curVer = esc(item.currentVersion?.versionNumber || 'v1.0');
   const candVer = esc(item.candidateVersion?.versionNumber || 'v1.1');
-  const priorityReason = [item.priority?.reason, item.risk?.level].filter(Boolean).map(esc).join(' / ');
+  const priorityReason = renderPriorityReason(item);
   const evidenceIds = Array.isArray(item.evidence?.reportIds) ? item.evidence.reportIds : [];
   // 바뀐 부분: 수정 전/후 문장끼리 비교하고, 같은 구간을 전체 지침에도 표시
   const before = item.change?.beforeSentence || '', after = item.change?.afterSentence || '';
@@ -432,9 +451,9 @@ function renderRevisionDetail(item) {
               : '<span class="text-muted">-</span>'}
           </span>
         </div>
-        <div class="flex gap-6">
+        <div class="flex items-center gap-6">
           <span class="w-48 shrink-0 text-ink/60">우선순위 이유</span>
-          <span>${priorityReason || '-'}</span>
+          <span class="flex flex-wrap items-center gap-x-2 gap-y-1">${priorityReason || '-'}</span>
         </div>
         <div class="flex gap-6">
           <span class="w-48 shrink-0 text-ink/60">담당자</span>
@@ -603,7 +622,8 @@ function renderManualDetail(m) {
          <p class="whitespace-pre-wrap text-[23px] leading-relaxed">${esc(text)}</p>
        </div>` : '';
   const inputCls = 'w-full resize-none rounded-[16px] bg-canvas p-5 text-[23px] leading-relaxed outline-none focus:ring-2 focus:ring-salmon';
-  const label = (t, sub) => `<div class="mb-2 flex items-baseline gap-3"><span class="text-[23px] font-semibold">${t}</span>${sub ? `<span class="text-[20px] text-ink/50">${sub}</span>` : ''}</div>`;
+  const REQ = '<span class="req-mark" aria-hidden="true">*</span>';
+  const label = (t, sub, required = false) => `<div class="mb-2 flex items-baseline gap-3"><span class="text-[23px] font-semibold">${t}${required ? REQ : ''}${required ? '<span class="sr-only">(필수)</span>' : ''}</span>${sub ? `<span class="text-[20px] text-ink/50">${sub}</span>` : ''}</div>`;
 
   const revisionForm = !gl.length
     ? `<p class="rounded-[16px] bg-canvas p-5 text-[22px] text-ink/70">이 에이전트에서 고를 수 있는 현재 지침이 없습니다.</p>`
@@ -682,8 +702,8 @@ function renderManualDetail(m) {
       <p class="mb-6 text-[21px] leading-relaxed text-ink/60">${mode.desc}</p>
       ${d.mode === 'SUBMIT_REVISION' ? revisionForm : ''}
       <div class="${d.mode === 'SUBMIT_REVISION' ? 'mt-6' : ''}">
-        ${label(d.mode === 'SUBMIT_REVISION' ? '수정 사유' : '검토 내용', '필수 · 1000자 이내')}
-        <textarea id="mrReason" rows="3" maxlength="1000" class="${inputCls}"
+        ${label(d.mode === 'SUBMIT_REVISION' ? '수정 사유' : '검토 내용', '1000자 이내', true)}
+        <textarea id="mrReason" rows="3" maxlength="1000" aria-required="true" class="${inputCls}"
           placeholder="${d.mode === 'SUBMIT_REVISION' ? '왜 이렇게 고치는지 적어 주세요.' : '검토한 내용을 적어 주세요.'}">${esc(d.reason)}</textarea>
       </div>
     </section>
