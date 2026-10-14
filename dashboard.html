@@ -46,6 +46,13 @@
     .layout:not(.detail-open) #detailCol { display: none; }
     .layout.detail-open #listCol { max-width: 453px; }
 
+    /* 지침 개정: 실제로 바뀐 글자 — Inter Bold + 글자 높이 60% 하이라이트(#E10412, 20%) */
+    .chg {
+      font-family: 'Inter', 'Apple SD Gothic Neo', sans-serif; font-weight: 700;
+      background: linear-gradient(to top, rgba(225, 4, 18, .2) 60%, transparent 60%);
+      -webkit-box-decoration-break: clone; box-decoration-break: clone;
+      padding: 0 .06em;
+    }
     .scroll-y { overflow-y: auto; scrollbar-width: thin; }
     .scroll-y::-webkit-scrollbar { width: 8px; }
     .scroll-y::-webkit-scrollbar-thumb { background: #e2e2e2; border-radius: 8px; }
