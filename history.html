@@ -38,6 +38,7 @@
     .scroll-y::-webkit-scrollbar-thumb { background: #e2e2e2; border-radius: 8px; }
   </style>
   <link rel="stylesheet" href="css/korean.css" />
+  <link rel="stylesheet" href="css/tour.css" />
 </head>
 
 <body class="text-ink">
@@ -58,6 +59,10 @@
     <button id="btnSettings" class="block h-[70px] w-[70px]" title="설정">
       <img src="Button/Primary/Medium/Default/Setting.png" alt="설정" class="h-[70px] w-[70px] object-contain" />
     </button>
+    <!-- 가이드 다시 보기 (뮤니) → 대시보드에서 1단계부터 -->
+    <button id="btnTour" class="block h-[70px] w-[70px]" title="가이드 다시 보기" aria-label="대시보드 가이드 보기">
+      <img src="Button/Primary/Medium/Default/Muni2.png" alt="" class="h-[70px] w-[70px] object-cover" />
+    </button>
   </nav>
 
   <!-- ============ NaveTitle (헤더) · x=639 ============ -->
@@ -77,7 +82,7 @@
          onerror="this.outerHTML='<span class=&quot;text-[34px] font-extrabold&quot;><span style=&quot;color:#f0322e&quot;>kt</span> m&amp;s</span>'"/></a>
   </div>
   <div class="absolute left-[147px] top-[121px] flex h-[145px] w-[492px] items-center gap-7 bg-canvas px-[71px] shadow-nav">
-    <img src="Button/Primary/Medium/Default/Profile.png" alt="프로필" class="h-[120px] w-[120px] shrink-0 object-contain" />
+    <img src="Button/Primary/Medium/Default/Profile2.svg" alt="프로필" class="h-[120px] w-[120px] shrink-0 rounded-full object-cover" />
     <div>
       <div class="flex items-end gap-3">
         <span class="text-[34px] font-medium text-ink" id="mgrName">김지민</span>
