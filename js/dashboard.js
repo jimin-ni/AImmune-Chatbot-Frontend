@@ -985,6 +985,7 @@ async function init() {
          </div>
        </div>`;
     if (CONFIG.USE_SAMPLE_ON_FAIL) { state.items = SAMPLE_ITEMS; renderList(); }
+    if (/[?&]tour=1\b/.test(location.search)) window.AIMMUNE_TOUR?.maybeAutoStart(); // 처리 내역에서 가이드 요청
   }
 }
 

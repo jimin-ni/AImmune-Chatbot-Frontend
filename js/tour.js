@@ -6,6 +6,7 @@
  * - 가이드 중에는 화면 전체를 막아 실제 버튼이 눌리지 않게 하고,
  *   dashboard.js의 전송 함수도 AIMMUNE_TOUR.active일 때 바로 빠져나간다.
  * - 처음 방문하면 한 번 자동으로 열리고(localStorage), 이후에는 레일의 뮤니 버튼으로 연다.
+ * - 다른 화면(처리 내역)의 뮤니 버튼은 dashboard.html?tour=1 로 보내고, 여기서 1단계부터 연다.
  * - 단계 정의: js/tour-steps.js
  * ========================================================================= */
 (function () {
@@ -120,10 +121,18 @@
     (document.getElementById('btnTour') || lastFocus)?.focus?.();
   }
 
+  /* 목록을 불러온 뒤 호출된다. ?tour=1 이면 기록과 상관없이 1단계부터 연다 */
   function maybeAutoStart() {
-    if (autoTried || store.get()) return;
+    if (autoTried) return;
+    const params = new URLSearchParams(location.search);
+    const forced = params.get('tour') === '1';
+    if (forced) {
+      params.delete('tour');
+      const q = params.toString();
+      history.replaceState(null, '', location.pathname + (q ? '?' + q : '') + location.hash); // 새로고침해도 다시 열리지 않게
+    } else if (store.get()) return;
     autoTried = true;
-    setTimeout(start, 700);
+    setTimeout(start, forced ? 300 : 700);
   }
 
   /* n번째 단계로. 대상이 없으면 같은 방향으로 건너뛴다 */
@@ -154,7 +163,7 @@
     note.hidden = !(usedDemo && idx === 0);
     note.textContent = '지금은 대기 건이 없어서 예시 카드로 보여 줄게. 예시는 실제로 처리되지 않아.';
     const img = root.querySelector('.tour-muni');
-    img.src = reduced ? STILL : (GIF[s.muni] || GIF.idle);
+    img.src = reduced ? STILL : (s.gif || GIF[s.muni] || GIF.idle);
     root.querySelector('.tour-prev').hidden = idx === 0;
     root.querySelector('.tour-next').textContent = idx === steps.length - 1 ? '시작하기' : '다음';
     root.dataset.step = s.id;

@@ -242,6 +242,11 @@ document.getElementById('btnHome')?.addEventListener('click', () => {
 });
 
 // 설정 버튼 → 처음 화면(챗봇)
+// 가이드(뮤니) 버튼 → 대시보드로 이동해 가이드를 1단계부터 연다
+document.getElementById('btnTour')?.addEventListener('click', () => {
+  window.location.href = '/dashboard.html?tour=1';
+});
+
 document.getElementById('btnSettings')?.addEventListener('click', () => {
   window.location.href = 'https://aimmune-chatbot-frontend-production.up.railway.app/';
 });
