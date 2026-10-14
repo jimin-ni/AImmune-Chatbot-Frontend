@@ -47,22 +47,18 @@ function riskStyle(level) {
   return map[String(level || '').toUpperCase()] || { text: 'text-ink/60', bg: 'bg-canvas' };
 }
 
-/* 우선순위 이유: "위험도 MEDIUM" 부분은 위험도 뱃지로, 나머지는 글자로 ( / 로 구분) */
+/* 우선순위 이유: 위험도는 목록 카드와 같은 값(item.risk.level)으로 뱃지를 달고, 나머지는 글자로 ( / 로 구분)
+ * 서버의 우선순위 문장에도 "위험도 ○○"가 들어 있지만, 이건 같은 지침 신고 전체 기준이라 카드 위험도와 다를 수 있어 쓰지 않는다. */
 function renderPriorityReason(item) {
-  const LV = /^(?:위험도\s+)?(CRITICAL|HIGH|MEDIUM|LOW)$/i;
-  const parts = [item.priority?.reason, item.risk?.level].filter(Boolean)
-    .flatMap(t => String(t).split('/')).map(t => t.trim()).filter(Boolean);
-  let shownLevel = false;
+  const LV = /^(?:위험도\s+)?(CRITICAL|HIGH|MEDIUM|LOW|미확인)$/i;
+  const parts = String(item.priority?.reason || '').split('/').map(t => t.trim()).filter(t => t && !LV.test(t));
+  const level = String(item.risk?.level || '').toUpperCase();
   const out = [];
-  for (const t of parts) {
-    const m = t.match(LV);
-    if (m) {
-      if (shownLevel) continue;                       // 위험도가 두 번 나오면 한 번만
-      shownLevel = true;
-      const r = riskStyle(m[1]);
-      out.push(`<span class="inline-flex items-center gap-1.5 rounded-[14px] ${r.bg} px-3 py-1 text-[22px] font-medium ${r.text}">위험도 <span>${esc(m[1].toUpperCase())}</span></span>`);
-    } else out.push(`<span>${esc(t)}</span>`);
+  if (level) {
+    const r = riskStyle(level);
+    out.push(`<span class="inline-flex items-center gap-1.5 rounded-[14px] ${r.bg} px-3 py-1 text-[22px] font-medium ${r.text}">위험도 <span>${esc(level)}</span></span>`);
   }
+  parts.forEach(t => out.push(`<span>${esc(t)}</span>`));
   return out.join('<span class="text-muted">/</span>');
 }
 
