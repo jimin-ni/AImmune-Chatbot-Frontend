@@ -1,4 +1,5 @@
 # KT K New Deal AX ICT Academy Project
+<img width="1280" height="720" alt="1014 _10조_Agent 소개자료" src="https://github.com/user-attachments/assets/1c3e2af7-fceb-42fa-8e77-fb30bfcf14a8" />
 
 ## A-IMMUNE (에이뮨) — 사내 AI 에이전트 통합 건의 소통 창구
 
