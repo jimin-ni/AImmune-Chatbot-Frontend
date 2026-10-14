@@ -73,20 +73,89 @@ function esc(v) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-/* 전체 지침 content를 번호 목록으로 렌더 (줄바꿈 기준) + diff 강조 */
-function renderContent(content, highlight) {
-  const lines = String(content ?? '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-  const hl = (text) => {
-    let out = esc(text);
-    if (highlight) {
-      const key = esc(highlight.trim());
-      if (key && out.includes(key)) out = out.replace(key, `<strong class="font-semibold">${key}</strong>`);
+/* ---------------------------------------------------------------------------
+ * 바뀐 부분 강조 — 수정 전/후 문장을 단어 단위로 비교해 실제로 바뀐 글자만 표시
+ *   ranges: [[시작, 끝), ...] (원문 문자 위치)
+ * ------------------------------------------------------------------------- */
+const DIFF_SPLIT = /(\s+|[.,!?;:·()\[\]"'“”‘’<>/])/;
+
+function tokenize(text) {
+  const out = []; let pos = 0;
+  for (const t of String(text ?? '').split(DIFF_SPLIT)) {
+    if (t) { out.push({ t, s: pos, e: pos + t.length }); pos += t.length; }
+  }
+  return out;
+}
+
+/* 두 글의 바뀐 구간. 앞뒤 공통 부분을 먼저 떼고 가운데만 LCS로 비교한다 */
+function diffRanges(a, b) {
+  const A = tokenize(a), B = tokenize(b);
+  let p = 0; while (p < A.length && p < B.length && A[p].t === B[p].t) p++;
+  let q = 0; while (q < A.length - p && q < B.length - p && A[A.length - 1 - q].t === B[B.length - 1 - q].t) q++;
+  const a2 = A.slice(p, A.length - q), b2 = B.slice(p, B.length - q);
+  const keepA = new Array(a2.length).fill(false), keepB = new Array(b2.length).fill(false);
+  if (a2.length && b2.length && a2.length * b2.length <= 250000) {
+    const n = a2.length, m = b2.length, L = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+    for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--)
+      L[i][j] = a2[i].t === b2[j].t ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+    for (let i = 0, j = 0; i < n && j < m;) {
+      if (a2[i].t === b2[j].t) { keepA[i++] = true; keepB[j++] = true; }
+      else if (L[i + 1][j] >= L[i][j + 1]) i++; else j++;
     }
-    return out;
+  }
+  // 바뀐 단어 사이에 공백·문장부호만 있으면 한 덩어리로 잇고, 공백·문장부호만 바뀐 건 표시하지 않는다
+  const toRanges = (toks, keep) => {
+    const r = []; let bridge = false;
+    toks.forEach((tk, i) => {
+      const word = /[\p{L}\p{N}]/u.test(tk.t);              // 글자·숫자가 있는 토큰
+      if (!keep[i] && word) {
+        if (bridge && r.length) r[r.length - 1][1] = tk.e; else r.push([tk.s, tk.e]);
+        bridge = true;
+      } else if (!keep[i] && tk.t.trim() && bridge && r.length) {
+        // 바뀐 문장부호는 앞 구간에 붙인다 (예: "추천, 인계를"의 쉼표)
+      } else if (word) bridge = false;                        // 그대로인 단어가 나오면 구간을 끊는다
+    });
+    return r;
   };
-  if (lines.length <= 1) return `<p class="leading-relaxed">${hl(content)}</p>`;
+  return { a: toRanges(a2, keepA), b: toRanges(b2, keepB) };
+}
+
+/* 글의 일부(sentence)를 바꾼 경우: 그 문장 위치만큼 구간을 옮겨 전체 지침에 적용 */
+function rangesInContent(content, sentence, ranges) {
+  const at = sentence ? String(content ?? '').indexOf(sentence) : -1;
+  return at < 0 ? null : ranges.map(([s, e]) => [s + at, e + at]);
+}
+
+/* 구간을 강조 표시(.chg)로 감싼 HTML. offset = text가 원문에서 시작하는 위치 */
+function markText(text, ranges = [], offset = 0) {
+  let out = '', pos = 0;
+  for (const [s0, e0] of ranges) {
+    const s = Math.max(s0 - offset, pos), e = Math.min(e0 - offset, text.length);
+    if (e <= s) continue;
+    out += esc(text.slice(pos, s)) + `<span class="chg">${esc(text.slice(s, e))}</span>`;
+    pos = e;
+  }
+  return out + esc(text.slice(pos));
+}
+
+/* 전체 지침 content를 번호 목록으로 렌더 (줄바꿈 기준) + 바뀐 부분 강조 */
+function renderContent(content, ranges = []) {
+  const src = String(content ?? '');
+  const lines = []; let pos = 0;
+  for (const raw of src.split(/(\r?\n)/)) {
+    if (!/^\r?\n$/.test(raw) && raw.trim()) {
+      const lead = raw.length - raw.trimStart().length;
+      const num = raw.trimStart().match(/^\d+[.)]\s*/)?.[0].length || 0;
+      lines.push({ text: raw.trim().slice(num), off: pos + lead + num });
+    }
+    pos += raw.length;
+  }
+  if (lines.length <= 1) {
+    const t = src.trim(), off = src.indexOf(t);
+    return `<p class="leading-relaxed">${markText(t, ranges, off)}</p>`;
+  }
   return `<ol class="list-decimal space-y-1.5 pl-5 leading-relaxed">${
-    lines.map(line => `<li>${hl(line.replace(/^\d+[.)]\s*/, ''))}</li>`).join('')
+    lines.map(l => `<li>${markText(l.text, ranges, l.off)}</li>`).join('')
   }</ol>`;
 }
 
@@ -268,6 +337,12 @@ function renderRevisionDetail(item) {
   const candVer = esc(item.candidateVersion?.versionNumber || 'v1.1');
   const priorityReason = [item.priority?.reason, item.risk?.level].filter(Boolean).map(esc).join(' / ');
   const evidenceIds = Array.isArray(item.evidence?.reportIds) ? item.evidence.reportIds : [];
+  // 바뀐 부분: 수정 전/후 문장끼리 비교하고, 같은 구간을 전체 지침에도 표시
+  const before = item.change?.beforeSentence || '', after = item.change?.afterSentence || '';
+  const curC = item.currentVersion?.content || '', candC = item.candidateVersion?.content || '';
+  const sd = before !== after ? diffRanges(before, after) : { a: [], b: [] };
+  let curR = rangesInContent(curC, before, sd.a), candR = rangesInContent(candC, after, sd.b);
+  if (!curR || !candR) { const fd = curC !== candC ? diffRanges(curC, candC) : { a: [], b: [] }; curR = curR || fd.a; candR = candR || fd.b; }
 
   box.innerHTML = `
     <div class="flex items-start justify-between">
@@ -301,12 +376,12 @@ function renderRevisionDetail(item) {
       <div class="flex items-stretch gap-4">
         <div class="flex-1 rounded-[16px] bg-canvas p-5">
           <div class="mb-3 text-[22px] font-medium text-ink/60">수정 전 <span class="ml-1">${curVer}</span></div>
-          <p class="text-[23px] leading-relaxed">${esc(item.change?.beforeSentence || '')}</p>
+          <p class="text-[23px] leading-relaxed">${markText(before, sd.a)}</p>
         </div>
         <div class="flex items-center text-[31px] text-muted">→</div>
         <div class="flex-1 rounded-[16px] border-2 border-salmon bg-[#fff6f4] p-5">
           <div class="mb-3 text-[22px] font-medium text-salmon">수정 제안 <span class="ml-1">${candVer}</span></div>
-          <p class="text-[23px] font-semibold leading-relaxed">${esc(item.change?.afterSentence || '')}</p>
+          <p class="text-[23px] leading-relaxed">${markText(after, sd.b)}</p>
         </div>
       </div>
     </section>
@@ -316,12 +391,12 @@ function renderRevisionDetail(item) {
       <div class="flex items-stretch gap-4">
         <div class="flex-1 overflow-hidden rounded-[16px] bg-canvas">
           <div class="bg-ink px-5 py-3 text-[22px] font-semibold text-white">전체 현재 지침 <span class="ml-1 font-normal opacity-80">${curVer}</span></div>
-          <div class="p-5 text-[22px]">${renderContent(item.currentVersion?.content, item.change?.beforeSentence)}</div>
+          <div class="p-5 text-[22px]">${renderContent(curC, curR)}</div>
         </div>
         <div class="flex items-center text-[31px] text-muted">→</div>
         <div class="flex-1 overflow-hidden rounded-[16px] bg-canvas">
           <div class="bg-brand px-5 py-3 text-[22px] font-semibold text-white">전체 후보 지침 <span class="ml-1 font-normal opacity-80">${candVer}</span></div>
-          <div class="p-5 text-[22px]">${renderContent(item.candidateVersion?.content, item.change?.afterSentence)}</div>
+          <div class="p-5 text-[22px]">${renderContent(candC, candR)}</div>
         </div>
       </div>
     </section>
