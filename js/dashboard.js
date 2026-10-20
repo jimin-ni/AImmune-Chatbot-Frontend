@@ -998,12 +998,23 @@ function removeSelected() {
 /* ---------------------------------------------------------------------------
  * 7. 초기화
  * ------------------------------------------------------------------------- */
+/* 첫 로딩 오버레이 걷기: 화면 잠금(inert)을 풀고 오버레이를 서서히 지운다 (성공·실패 모두) */
+function hidePageLoading() {
+  const vp = document.getElementById('viewport');
+  if (vp) { vp.removeAttribute('inert'); vp.removeAttribute('aria-busy'); }
+  const el = document.getElementById('pageLoading');
+  if (!el || el.classList.contains('is-hiding')) return;
+  el.classList.add('is-hiding');
+  setTimeout(() => el.remove(), 260);
+}
+
 async function init() {
   if (CONFIG.N8N_BASE_URL.includes('YOUR-N8N-HOST')) {
     document.getElementById('listWrap').innerHTML =
       `<div class="rounded-2xl bg-white p-6 text-center text-salmon shadow-card">
          dashboard.js의 <b>CONFIG.N8N_BASE_URL</b>을 실제 n8n 주소로 바꿔주세요.
        </div>`;
+    hidePageLoading();
     return;
   }
   try {
@@ -1015,6 +1026,7 @@ async function init() {
     if (data.techConfirmApi && data.techConfirmApi.path) CONFIG.TECH_CONFIRM_PATH = data.techConfirmApi.path;
     if (data.manualReviewApi && data.manualReviewApi.path) CONFIG.MANUAL_REVIEW_PATH = data.manualReviewApi.path;
     renderList();
+    hidePageLoading();                      // 목록이 다 그려진 뒤 화면 잠금 해제
     window.AIMMUNE_TOUR?.maybeAutoStart(); // 첫 방문이면 가이드 시작
   } catch (e) {
     console.error('[A-IMMUNE] 조회 실패:', e);
@@ -1029,6 +1041,7 @@ async function init() {
          </div>
        </div>`;
     if (CONFIG.USE_SAMPLE_ON_FAIL) { state.items = SAMPLE_ITEMS; renderList(); }
+    hidePageLoading();                      // 실패해도 잠금을 풀어 오류 안내를 볼 수 있게
     if (/[?&]tour=1\b/.test(location.search)) window.AIMMUNE_TOUR?.maybeAutoStart(); // 처리 내역에서 가이드 요청
   }
 }

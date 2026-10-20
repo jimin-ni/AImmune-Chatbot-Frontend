@@ -58,13 +58,45 @@
     .scroll-y { overflow-y: auto; scrollbar-width: thin; }
     .scroll-y::-webkit-scrollbar { width: 8px; }
     .scroll-y::-webkit-scrollbar-thumb { background: #e2e2e2; border-radius: 8px; }
+
+    /* ===== 첫 로딩 오버레이: 진행 대기 목록을 다 불러올 때까지 화면 전체를 덮고 클릭을 막는다 ===== */
+    #pageLoading {
+      position: fixed; inset: 0; z-index: 2000;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(54, 54, 54, .38); cursor: progress;
+      transition: opacity .25s ease;
+    }
+    #pageLoading.is-hiding { opacity: 0; pointer-events: none; }
+    #pageLoading .pl-card {
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      padding: 26px 40px 24px; border-radius: 20px; background: #fff;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, .18);
+    }
+    #pageLoading img { width: 88px; height: auto; }
+    #pageLoading .pl-text { font-size: 18px; font-weight: 600; color: #363636; }
+    #pageLoading .pl-sub { font-size: 14px; color: #8a8a8a; }
+    #pageLoading .pl-dots { display: inline-block; width: 1.1em; text-align: left; }
+    #pageLoading .pl-dots::after { content: ''; animation: plDots 1.2s steps(4, end) infinite; }
+    @keyframes plDots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } }
+    @media (prefers-reduced-motion: reduce) {
+      #pageLoading { transition: none; }
+      #pageLoading .pl-dots::after { animation: none; content: '…'; }
+    }
   </style>
   <link rel="stylesheet" href="css/korean.css" />
   <link rel="stylesheet" href="css/tour.css" />
 </head>
 
 <body class="text-ink">
-<div id="viewport">
+<!-- 첫 로딩 오버레이 — dashboard.js가 목록을 다 불러오면 걷어 낸다 -->
+<div id="pageLoading" role="status" aria-live="polite">
+  <div class="pl-card">
+    <img src="img/muni-idle.gif" alt="" />
+    <div class="pl-text">진행 대기 목록을 불러오는 중<span class="pl-dots"></span></div>
+    <div class="pl-sub">잠시만 기다려 주세요</div>
+  </div>
+</div>
+<div id="viewport" inert aria-busy="true">
 <div id="stage">
 
   <!-- ============ NavIcon (좌측 아이콘 레일) · x=39 y=264 · 두 화면 공통 ============ -->
