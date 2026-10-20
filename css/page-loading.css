@@ -1,0 +1,27 @@
+/* =========================================================================
+ * 첫 로딩 오버레이 — dashboard.html · history.html 공통
+ * 목록을 다 불러올 때까지 화면 전체를 덮고 클릭을 막는다.
+ * 화면 잠금(inert) 해제와 오버레이 제거는 각 페이지 JS의 hidePageLoading()이 한다.
+ * ========================================================================= */
+#pageLoading {
+  position: fixed; inset: 0; z-index: 2000;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(54, 54, 54, .38); cursor: progress;
+  transition: opacity .25s ease;
+}
+#pageLoading.is-hiding { opacity: 0; pointer-events: none; }
+#pageLoading .pl-card {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  padding: 26px 40px 24px; border-radius: 20px; background: #fff;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, .18);
+}
+#pageLoading img { width: 88px; height: auto; }
+#pageLoading .pl-text { font-size: 18px; font-weight: 600; color: #363636; }
+#pageLoading .pl-sub { font-size: 14px; color: #8a8a8a; }
+#pageLoading .pl-dots { display: inline-block; width: 1.1em; text-align: left; }
+#pageLoading .pl-dots::after { content: ''; animation: plDots 1.2s steps(4, end) infinite; }
+@keyframes plDots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } }
+@media (prefers-reduced-motion: reduce) {
+  #pageLoading { transition: none; }
+  #pageLoading .pl-dots::after { animation: none; content: '…'; }
+}
