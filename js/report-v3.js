@@ -29,12 +29,14 @@ const STEPS = [
     key: 'agent_name', type: 'choice', required: true,
     title: '어떤 Agent를 사용하셨나요?',
     error: '사용한 Agent를 선택해 주세요.',
+    // disabled: true → 선택할 수 없게 막고 '준비 중'으로 표시. 열 때는 이 표시만 지우면 된다.
     options: [
       { value: 'JOY', label: "I'M JOY", desc: '영업지원 AI' },
-      { value: 'SAM', label: 'SAM' },
-      { value: '흥부장', label: '흥부장' },
-      { value: 'AI아트랩', label: 'AI아트랩' },
+      { value: 'SAM', label: 'SAM', disabled: true },
+      { value: '흥부장', label: '흥부장', disabled: true },
+      { value: 'AI아트랩', label: 'AI아트랩', disabled: true },
     ],
+    note: 'SAM, 흥부장, AI아트랩은 업데이트 예정이에요. 지금은 I\'M JOY만 선택할 수 있어요.',
   },
   {
     key: 'reporter_email', type: 'email', required: true,
@@ -163,13 +165,14 @@ function controlHtml(s) {
   const lab = 'aria-labelledby="q-title" aria-describedby="hint err"';
   switch (s.type) {
     case 'choice':
-      return `<div class="choices" role="radiogroup" aria-labelledby="q-title" aria-describedby="hint err">${
+      return `<div class="choices" role="radiogroup" aria-labelledby="q-title" aria-describedby="hint err${s.note ? ' choice-note' : ''}">${
         s.options.map((o, i) => `
-          <label class="choice">
-            <input type="radio" name="${s.key}" value="${o.value}" data-i="${i}" />
+          <label class="choice${o.disabled ? ' is-disabled' : ''}">
+            <input type="radio" name="${s.key}" value="${o.value}" data-i="${i}"${o.disabled ? ' disabled aria-disabled="true"' : ''} />
             <span class="choice-text"><b>${o.label}</b>${o.desc ? `<small>${o.desc}</small>` : ''}</span>
+            ${o.disabled ? '<span class="soon">준비 중</span>' : ''}
             <span class="tick" aria-hidden="true"></span>
-          </label>`).join('')}</div>`;
+          </label>`).join('')}</div>${s.note ? `<p class="choice-note" id="choice-note">${s.note}</p>` : ''}`;
     case 'date':
       return `<input class="field" id="ctl" type="date" max="${todayLocal()}" ${lab} />`;
     case 'time':
@@ -201,7 +204,8 @@ function render(dir = 1, moveFocus = true) {
   const v = answers[s.key];
   if (s.type === 'choice') {
     const input = [...host.querySelectorAll('input[type=radio]')].find((r) => r.value === v);
-    if (input) input.checked = true;
+    if (input && !input.disabled) input.checked = true;
+    else if (input) delete answers[s.key];   // 이전에 고른 값이 지금은 막혀 있으면 지운다
   } else if (s.type === 'file') {
     renderFile();
   } else {
@@ -220,7 +224,7 @@ function render(dir = 1, moveFocus = true) {
 function focusControl() {
   const s = STEPS[idx];
   const el = s.type === 'choice'
-    ? (host.querySelector('input:checked') || host.querySelector('input'))
+    ? (host.querySelector('input:checked') || host.querySelector('input:not(:disabled)'))
     : s.type === 'file' ? host.querySelector('.drop input, .btn-text') : $('#ctl');
   (el || $('#q-title')).focus({ preventScroll: true });
 }
@@ -371,6 +375,7 @@ form.addEventListener('click', (e) => {
   const s = STEPS[idx];
   if (s.type === 'choice') {
     const label = e.target.closest('.choice');
+    if (label && label.classList.contains('is-disabled')) return;   // 준비 중인 Agent는 눌러도 넘어가지 않음
     if (label && e.detail > 0 && !sending) setTimeout(() => { if (STEPS[idx] === s && answers[s.key]) advance(); }, 380);
   }
   if (e.target.id === 'file-remove') {
