@@ -283,6 +283,16 @@ textarea.field { min-height: 156px; resize: vertical; line-height: 1.6; }
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 7.4l2.6 2.6L11 4.4'/%3E%3C/svg%3E");
 }
 .choice:has(input:focus-visible) { outline: 3px solid rgba(85, 138, 235, .5); outline-offset: 2px; }
+/* 준비 중인 선택지: 고를 수 없게 흐리게 */
+.choice.is-disabled { cursor: not-allowed; background: #f3f4f9; border-color: #dfe3ef; }
+.choice.is-disabled:hover { border-color: #dfe3ef; }
+.choice.is-disabled .choice-text b { color: #9aa1b8; }
+.choice.is-disabled .tick { border-color: #dfe3ef; background-color: #f3f4f9; }
+.soon {
+  flex: none; padding: 3px 10px; border-radius: 999px;
+  background: #e9ecf5; color: var(--slate); font-size: 13px; font-weight: 600;
+}
+.choice-note { margin: 12px 4px 0; color: var(--slate); font-size: 14px; }
 
 /* 첨부 */
 .drop {
