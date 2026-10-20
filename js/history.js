@@ -185,6 +185,16 @@ function render() {
 /* ---------------------------------------------------------------------------
  * 6. 초기화
  * ------------------------------------------------------------------------- */
+/* 첫 로딩 오버레이 걷기: 화면 잠금(inert)을 풀고 오버레이를 서서히 지운다 (성공·실패 모두) */
+function hidePageLoading() {
+  const vp = document.getElementById('viewport');
+  if (vp) { vp.removeAttribute('inert'); vp.removeAttribute('aria-busy'); }
+  const el = document.getElementById('pageLoading');
+  if (!el || el.classList.contains('is-hiding')) return;
+  el.classList.add('is-hiding');
+  setTimeout(() => el.remove(), 260);
+}
+
 async function init() {
   try {
     state.items = await fetchHistory();
@@ -197,10 +207,12 @@ async function init() {
         `<div class="rounded-[20px] bg-white p-6 text-center text-salmon shadow-card">
            내역을 불러오지 못했습니다: ${esc(e.message)}
          </div>`;
+      hidePageLoading();                    // 실패해도 잠금을 풀어 오류 안내를 볼 수 있게
       return;
     }
   }
   render();
+  hidePageLoading();                        // 내역이 다 그려진 뒤 화면 잠금 해제
 }
 
 /* ---------------------------------------------------------------------------

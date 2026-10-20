@@ -39,10 +39,19 @@
   </style>
   <link rel="stylesheet" href="css/korean.css" />
   <link rel="stylesheet" href="css/tour.css" />
+  <link rel="stylesheet" href="css/page-loading.css" />
 </head>
 
 <body class="text-ink">
-<div id="viewport">
+<!-- 첫 로딩 오버레이(css/page-loading.css) — history.js가 내역을 다 불러오면 걷어 낸다 -->
+<div id="pageLoading" role="status" aria-live="polite">
+  <div class="pl-card">
+    <img src="img/muni-idle.gif" alt="" />
+    <div class="pl-text">처리 내역을 불러오는 중<span class="pl-dots"></span></div>
+    <div class="pl-sub">잠시만 기다려 주세요</div>
+  </div>
+</div>
+<div id="viewport" inert aria-busy="true">
 <div id="stage">
 
   <!-- ============ NavIcon · x=39 y=264 · 두 화면 공통 ============ -->
