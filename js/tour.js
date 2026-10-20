@@ -5,12 +5,12 @@
  *   하이라이트·말풍선이 캔버스 좌표로 맞고, 함께 줄어든다.
  * - 가이드 중에는 화면 전체를 막아 실제 버튼이 눌리지 않게 하고,
  *   dashboard.js의 전송 함수도 AIMMUNE_TOUR.active일 때 바로 빠져나간다.
- * - 처음 방문하면 한 번 자동으로 열리고(localStorage), 이후에는 레일의 뮤니 버튼으로 연다.
+ * - 진행 대기 목록을 다 불러오면(첫 로딩 오버레이가 걷힌 뒤) 매번 자동으로 열린다.
+ *   닫은 뒤에는 레일의 뮤니 버튼으로 다시 연다.
  * - 다른 화면(처리 내역)의 뮤니 버튼은 dashboard.html?tour=1 로 보내고, 여기서 1단계부터 연다.
  * - 단계 정의: js/tour-steps.js
  * ========================================================================= */
 (function () {
-  const KEY = 'aimmune_tour_v1';             // 문구가 크게 바뀌면 v2로 올려 다시 보여 준다
   const W = 2560, H = 1600, MARGIN = 40, GAP = 36, PAD = 14;
   const GIF = { idle: 'img/muni-idle.gif', approve: 'img/muni-approve.gif', reject: 'img/muni-reject.gif', confirm: 'img/muni-confirm.gif' };
   const STILL = 'img/muniForm.png';
@@ -21,10 +21,6 @@
   const T = { active: false, start, end, maybeAutoStart };
   window.AIMMUNE_TOUR = T;
 
-  const store = {
-    get() { try { return localStorage.getItem(KEY); } catch (e) { return null; } },
-    set() { try { localStorage.setItem(KEY, 'done'); } catch (e) {} },
-  };
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   const stage = () => document.getElementById('stage');
 
@@ -106,7 +102,6 @@
     build();
     document.addEventListener('keydown', onKey, true);
     window.addEventListener('resize', onResize);
-    store.set(); // 한 번 보여 주면 다음부터 자동으로 열지 않는다
     go(0, 1);
   }
 
@@ -121,7 +116,8 @@
     (document.getElementById('btnTour') || lastFocus)?.focus?.();
   }
 
-  /* 목록을 불러온 뒤 호출된다. ?tour=1 이면 기록과 상관없이 1단계부터 연다 */
+  /* 목록을 불러온 뒤(로딩 오버레이가 걷힌 뒤) 호출된다. 페이지를 열 때마다 한 번씩 1단계부터 연다.
+   * 처리 내역에서 넘어온 ?tour=1 은 주소에서 지워 둔다 */
   function maybeAutoStart() {
     if (autoTried) return;
     const params = new URLSearchParams(location.search);
@@ -129,8 +125,8 @@
     if (forced) {
       params.delete('tour');
       const q = params.toString();
-      history.replaceState(null, '', location.pathname + (q ? '?' + q : '') + location.hash); // 새로고침해도 다시 열리지 않게
-    } else if (store.get()) return;
+      history.replaceState(null, '', location.pathname + (q ? '?' + q : '') + location.hash);
+    }
     autoTried = true;
     setTimeout(start, forced ? 300 : 700);
   }

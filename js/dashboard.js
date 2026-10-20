@@ -1027,7 +1027,7 @@ async function init() {
     if (data.manualReviewApi && data.manualReviewApi.path) CONFIG.MANUAL_REVIEW_PATH = data.manualReviewApi.path;
     renderList();
     hidePageLoading();                      // 목록이 다 그려진 뒤 화면 잠금 해제
-    window.AIMMUNE_TOUR?.maybeAutoStart(); // 첫 방문이면 가이드 시작
+    window.AIMMUNE_TOUR?.maybeAutoStart(); // 로딩이 끝나면 가이드 자동 시작
   } catch (e) {
     console.error('[A-IMMUNE] 조회 실패:', e);
     document.getElementById('listWrap').innerHTML =
